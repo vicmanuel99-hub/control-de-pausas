@@ -701,7 +701,7 @@
           <div class="shift-card c-green">
             <div class="shift-header">
               <span class="shift-time">🕒 1:00</span>
-              <span class="shift-rule" id="badge-day-100">Pareja (2)</span>
+              <span class="shift-rule" id="badge-day-100">Grupo</span>
             </div>
             <div class="shift-body dropzone" data-turno="diurno" data-slot="t100" id="day-t100">
               <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
@@ -711,7 +711,7 @@
           <div class="shift-card c-amber">
             <div class="shift-header">
               <span class="shift-time">🕒 1:45</span>
-              <span class="shift-rule" id="badge-day-145">Pareja (2)</span>
+              <span class="shift-rule" id="badge-day-145">Grupo</span>
             </div>
             <div class="shift-body dropzone" data-turno="diurno" data-slot="t145" id="day-t145">
               <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
@@ -721,7 +721,7 @@
           <div class="shift-card c-orange">
             <div class="shift-header">
               <span class="shift-time">🕒 2:15</span>
-              <span class="shift-rule" id="badge-day-215">Bloque final</span>
+              <span class="shift-rule" id="badge-day-215">Grupo</span>
             </div>
             <div class="shift-body dropzone" data-turno="diurno" data-slot="t215" id="day-t215">
               <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
@@ -1245,14 +1245,41 @@
 
         const mezclados = mezclarFisherYates(otrosPresentes);
 
-        const t1215 = mezclados.slice(0, 1);
-        const t100  = mezclados.slice(1, 3);
-        const t145  = mezclados.slice(3, 5);
-        let t215    = mezclados.slice(5);
+        let t1215 = [];
+        let t100 = [];
+        let t145 = [];
+        let t215 = [];
 
-        if (joseNombre) {
-          t215.push(joseNombre);
-          t215 = mezclarFisherYates(t215);
+        if (mezclados.length === 0) {
+          if (joseNombre) t215 = [joseNombre];
+        } else {
+          t1215 = [mezclados[0]];
+          const restoOtros = mezclados.slice(1);
+          const totalResto = restoOtros.length + (joseNombre ? 1 : 0);
+
+          let cupo100 = 0;
+          let cupo145 = 0;
+          if (joseNombre && totalResto === 1) {
+            cupo100 = 0;
+            cupo145 = 0;
+          } else if (joseNombre && totalResto === 2) {
+            cupo100 = 1;
+            cupo145 = 0;
+          } else {
+            const base = Math.floor(totalResto / 3);
+            const sobrantes = totalResto % 3;
+            cupo100 = base + (sobrantes >= 1 ? 1 : 0);
+            cupo145 = base + (sobrantes >= 2 ? 1 : 0);
+          }
+
+          t100 = restoOtros.slice(0, cupo100);
+          t145 = restoOtros.slice(cupo100, cupo100 + cupo145);
+          t215 = restoOtros.slice(cupo100 + cupo145);
+
+          if (joseNombre) {
+            t215.push(joseNombre);
+            t215 = mezclarFisherYates(t215);
+          }
         }
 
         const reparto = { t1215, t100, t145, t215, hora: horaActual };
