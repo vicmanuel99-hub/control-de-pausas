@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f17" />
+  <title>Editor Móvil — Gemini + GitHub</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --surface: #111827;
+      --surface-2: #1a2333;
+      --border: #243044;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-dark: #0284c7;
+      --success: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --user-bubble: #1d4ed8;
+      --bot-bubble: #151e2e;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      height: 100dvh;
+      max-width: 780px;
+      margin: 0 auto;
+      background: var(--bg);
+    }
+
+    /* Header */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 14px;
+      padding-top: max(10px, env(safe-area-inset-top));
+      background: rgba(17, 24, 39, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .brand-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--warn);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+      flex-shrink: 0;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .brand-dot.ready {
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+    }
+
+    .repo-select {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      max-width: 195px;
+      cursor: pointer;
+    }
+
+    .repo-select:focus {
+      border-color: var(--accent);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 11px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .icon-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Panel de configuración */
+    .settings-panel {
+      display: none;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px;
+      max-height: 70dvh;
+      overflow-y: auto;
+      animation: slideDown 0.18s ease;
+    }
+
+    .settings-panel.open {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .settings-grid {
+      display: grid;
+      gap: 11px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 0.86rem;
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent);
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 0.83rem;
+    }
+
+    .toggle-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .settings-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--accent-dark);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent);
+      color: #0b0f17;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-ghost.danger:hover {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    /* Chat */
+    .chat-feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .welcome-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 8px;
+    }
+
+    .welcome-card h2 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .welcome-card p {
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 0.77rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .chip:hover {
+      border-color: var(--accent);
+    }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 90%;
+      animation: fadeUp 0.18s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.user {
+      align-self: flex-end;
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+      max-width: 94%;
+    }
+
+    .bubble {
+      padding: 11px 14px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      line-height: 1.48;
+      word-break: break-word;
+    }
+
+    .msg.user .bubble {
+      background: var(--user-bubble);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.bot .bubble {
+      background: var(--bot-bubble);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-meta {
+      font-size: 0.71rem;
+      color: var(--muted);
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+
+    .msg.user .msg-meta {
+      text-align: right;
+    }
+
+    .step-log {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(56, 189, 248, 0.25);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .result-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .mini-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mini-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .mini-btn.confirm {
+      background: rgba(34, 197, 94, 0.16);
+      border-color: rgba(34, 197, 94, 0.45);
+      color: #86efac;
+    }
+
+    .mini-btn.revert {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fcd34d;
+    }
+
+    .mini-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .diff-box {
+      margin-top: 10px;
+      background: #070a10;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      max-height: 220px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.73rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .diff-add { color: #86efac; }
+    .diff-del { color: #fca5a5; }
+    .diff-info { color: var(--muted); }
+
+    .error-text {
+      color: #fca5a5;
+    }
+
+    /* Composer */
+    .composer-wrap {
+      padding: 10px 12px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      background: rgba(17, 24, 39, 0.96);
+      border-top: 1px solid var(--border);
+    }
+
+    .composer {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 6px 6px 6px 12px;
+      transition: border-color 0.15s;
+    }
+
+    .composer:focus-within {
+      border-color: var(--accent);
+    }
+
+    .composer textarea {
+      flex: 1;
+      background: transparent;
+      color: var(--text);
+      border: none;
+      outline: none;
+      resize: none;
+      font-size: 0.94rem;
+      line-height: 1.4;
+      max-height: 130px;
+      padding: 6px 0;
+    }
+
+    .composer textarea::placeholder {
+      color: #64748b;
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      border: none;
+      background: var(--accent-dark);
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .send-btn:active {
+      transform: scale(0.95);
+    }
+
+    .send-btn:disabled {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+    }
+
+    .toast {
+      position: fixed;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 50;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Barra superior -->
+    <header class="topbar">
+      <div class="brand">
+        <span id="statusDot" class="brand-dot" title="Estado de credenciales"></span>
+        <select id="repoSelect" class="repo-select" aria-label="Seleccionar repositorio">
+          <option value="control-de-pausas">control-de-pausas</option>
+          <option value="dashboard-movistar">dashboard-movistar</option>
+        </select>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" id="btnClearChat" class="icon-btn" title="Limpiar chat">🧹</button>
+        <button type="button" id="btnSettings" class="icon-btn">⚙️ Claves</button>
+      </div>
+    </header>
+
+    <!-- Panel de credenciales y opciones -->
+    <section id="settingsPanel" class="settings-panel">
+      <div class="settings-grid">
+        <div class="field">
+          <label for="inputGeminiKey">🔑 API Key de Gemini (guardada solo en este dispositivo)</label>
+          <div class="input-row">
+            <input type="password" id="inputGeminiKey" placeholder="AIza..." autocomplete="off" />
+            <button type="button" class="icon-btn" data-toggle="inputGeminiKey" title="Mostrar/ocultar">👁️</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="inputGithubToken">🐙 Token de GitHub (con permiso repo)</label>
+          <div class="input-row">
+            <input type="password" id="inputGithubToken" placeholder="ghp_..." autocomplete="off" />
+            <button type="button" class="icon-btn" data-toggle="inputGithubToken" title="Mostrar/ocultar">👁️</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="inputGithubOwner">👤 Usuario de GitHub</label>
+          <input type="text" id="inputGithubOwner" placeholder="vicmanuel99-hub" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="selectModel">🤖 Modelo de Gemini</label>
+          <select id="selectModel">
+            <option value="gemini-2.5-flash">gemini-2.5-flash (Rápido · Recomendado)</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro (Más preciso)</option>
+            <option value="gemini-2.0-flash">gemini-2.0-flash (Alternativo)</option>
+          </select>
+        </div>
+
+        <label class="toggle-row">
+          <span>🚀 Subir directo a <code>main</code> sin confirmación previa</span>
+          <input type="checkbox" id="chkAutoPush" checked />
+        </label>
+
+        <div class="settings-actions">
+          <button type="button" id="btnSaveSettings" class="btn-primary">💾 Guardar configuración</button>
+          <button type="button" id="btnClearKeys" class="btn-ghost danger">🗑️ Borrar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Historial de chat -->
+    <main id="chatFeed" class="chat-feed">
+      <div class="welcome-card" id="welcomeCard">
+        <h2>⚡ Editor Móvil de <code>index.html</code></h2>
+        <p>
+          Elige el repositorio arriba, pega tus claves en <strong>⚙️ Claves</strong> y dime qué cambio necesitas.
+          Leeré tu <code>index.html</code> real desde GitHub, Gemini generará la versión actualizada y la publicaré en <code>main</code>.
+        </p>
+        <div class="chips">
+          <button type="button" class="chip" data-prompt="Cambia el color de fondo del encabezado principal a verde oscuro elegante">🎨 Cambiar color de encabezado</button>
+          <button type="button" class="chip" data-prompt="Agrega un botón discreto para copiar el resumen en formato limpio">📋 Mejorar botón copiar</button>
+          <button type="button" class="chip" data-prompt="Optimiza los márgenes y tamaños de fuente para que se vea mejor en pantalla de celular">📱 Ajustar vista móvil</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Caja de mensaje -->
+    <footer class="composer-wrap">
+      <form id="chatForm" class="composer">
+        <textarea id="promptInput" rows="1" placeholder="Escribe qué cambio quieres en index.html..."></textarea>
+        <button type="submit" id="btnSend" class="send-btn" title="Enviar">➤</button>
+      </form>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const STORAGE = {
+      geminiKey: "movil_editor_gemini_key",
+      githubToken: "movil_editor_github_token",
+      githubOwner: "movil_editor_github_owner",
+      model: "movil_editor_gemini_model",
+      repo: "movil_editor_selected_repo",
+      autoPush: "movil_editor_auto_push"
+    };
+
+    const DEFAULT_OWNER = "vicmanuel99-hub";
+    const DEFAULT_MODEL = "gemini-2.5-flash";
+
+    const els = {
+      statusDot: document.getElementById("statusDot"),
+      repoSelect: document.getElementById("repoSelect"),
+      btnSettings: document.getElementById("btnSettings"),
+      btnClearChat: document.getElementById("btnClearChat"),
+      settingsPanel: document.getElementById("settingsPanel"),
+      inputGeminiKey: document.getElementById("inputGeminiKey"),
+      inputGithubToken: document.getElementById("inputGithubToken"),
+      inputGithubOwner: document.getElementById("inputGithubOwner"),
+      selectModel: document.getElementById("selectModel"),
+      chkAutoPush: document.getElementById("chkAutoPush"),
+      btnSaveSettings: document.getElementById("btnSaveSettings"),
+      btnClearKeys: document.getElementById("btnClearKeys"),
+      chatFeed: document.getElementById("chatFeed"),
+      welcomeCard: document.getElementById("welcomeCard"),
+      chatForm: document.getElementById("chatForm"),
+      promptInput: document.getElementById("promptInput"),
+      btnSend: document.getElementById("btnSend"),
+      toast: document.getElementById("toast")
+    };
+
+    let busy = false;
+    let recentNotes = [];
+
+    function showToast(text) {
+      els.toast.textContent = text;
+      els.toast.classList.add("show");
+      clearTimeout(els.toast._t);
+      els.toast._t = setTimeout(() => els.toast.classList.remove("show"), 2400);
+    }
+
+    function getConfig() {
+      return {
+        geminiKey: (localStorage.getItem(STORAGE.geminiKey) || "").trim(),
+        githubToken: (localStorage.getItem(STORAGE.githubToken) || "").trim(),
+        owner: (localStorage.getItem(STORAGE.githubOwner) || DEFAULT_OWNER).trim() || DEFAULT_OWNER,
+        model: localStorage.getItem(STORAGE.model) || DEFAULT_MODEL,
+        repo: els.repoSelect.value,
+        autoPush: localStorage.getItem(STORAGE.autoPush) !== "false"
+      };
+    }
+
+    function loadSettingsUI() {
+      const cfg = getConfig();
+      els.inputGeminiKey.value = cfg.geminiKey;
+      els.inputGithubToken.value = cfg.githubToken;
+      els.inputGithubOwner.value = cfg.owner;
+      els.selectModel.value = cfg.model;
+      els.chkAutoPush.checked = cfg.autoPush;
+
+      const savedRepo = localStorage.getItem(STORAGE.repo);
+      if (savedRepo && [...els.repoSelect.options].some(o => o.value === savedRepo)) {
+        els.repoSelect.value = savedRepo;
+      }
+
+      const ready = Boolean(cfg.geminiKey && cfg.githubToken);
+      els.statusDot.classList.toggle("ready", ready);
+      els.statusDot.title = ready ? "Claves listas" : "Faltan claves en ⚙️ Claves";
+      if (!ready) {
+        els.settingsPanel.classList.add("open");
+        els.btnSettings.classList.add("active");
+      }
+    }
+
+    function saveSettingsUI() {
+      localStorage.setItem(STORAGE.geminiKey, els.inputGeminiKey.value.trim());
+      localStorage.setItem(STORAGE.githubToken, els.inputGithubToken.value.trim());
+      localStorage.setItem(STORAGE.githubOwner, els.inputGithubOwner.value.trim() || DEFAULT_OWNER);
+      localStorage.setItem(STORAGE.model, els.selectModel.value);
+      localStorage.setItem(STORAGE.autoPush, String(els.chkAutoPush.checked));
+
+      const cfg = getConfig();
+      const ready = Boolean(cfg.geminiKey && cfg.githubToken);
+      els.statusDot.classList.toggle("ready", ready);
+      els.settingsPanel.classList.remove("open");
+      els.btnSettings.classList.remove("active");
+      showToast(ready ? "✅ Claves guardadas en este dispositivo" : "⚠️ Faltan una o más claves");
+    }
+
+    // UTF-8 Base64 seguro para acentos y emojis
+    function base64ToUtf8(b64) {
+      const clean = String(b64 || "").replace(/\s+/g, "");
+      const bin = atob(clean);
+      const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+      return new TextDecoder("utf-8").decode(bytes);
+    }
+
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      return btoa(bin);
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function timeNow() {
+      return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function scrollBottom() {
+      els.chatFeed.scrollTop = els.chatFeed.scrollHeight;
+    }
+
+    function addUserMessage(text, repo) {
+      if (els.welcomeCard) els.welcomeCard.style.display = "none";
+      const wrap = document.createElement("div");
+      wrap.className = "msg user";
+      wrap.innerHTML = `
+        <div class="bubble">${escapeHtml(text).replace(/\n/g, "<br>")}</div>
+        <div class="msg-meta">${escapeHtml(repo)} · ${timeNow()}</div>
+      `;
+      els.chatFeed.appendChild(wrap);
+      scrollBottom();
+    }
+
+    function createBotMessage() {
+      if (els.welcomeCard) els.welcomeCard.style.display = "none";
+      const wrap = document.createElement("div");
+      wrap.className = "msg bot";
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      const meta = document.createElement("div");
+      meta.className = "msg-meta";
+      meta.textContent = `Gemini · ${timeNow()}`;
+      wrap.appendChild(bubble);
+      wrap.appendChild(meta);
+      els.chatFeed.appendChild(wrap);
+      scrollBottom();
+      return { wrap, bubble, meta };
+    }
+
+    function renderSteps(bubble, steps) {
+      bubble.innerHTML = `<div class="step-log">${steps.map(s => `
+        <div class="step-item">
+          ${s.state === "loading" ? '<span class="spinner"></span>' : `<span>${s.state === "done" ? "✅" : s.state === "warn" ? "⚠️" : "❌"}</span>`}
+          <span>${escapeHtml(s.text)}</span>
+        </div>
+      `).join("")}</div>`;
+      scrollBottom();
+    }
+
+    // GitHub API: leer index.html
+    async function fetchGithubIndex(cfg) {
+      const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/index.html?ref=main&t=${Date.now()}`;
+      const resp = await fetch(url, {
+        cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${cfg.githubToken}`,
+          Accept: "application/vnd.github+json"
+        }
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(`GitHub GET (${resp.status}): ${err.message || "No se pudo leer index.html"}`);
+      }
+      const data = await resp.json();
+      return {
+        sha: data.sha,
+        html: base64ToUtf8(data.content)
+      };
+    }
+
+    // GitHub API: subir index.html
+    async function pushGithubIndex(cfg, htmlContent, sha, message) {
+      const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/index.html`;
+      const resp = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${cfg.githubToken}`,
+          Accept: "application/vnd.github+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: message || "Actualizar index.html desde editor móvil",
+          content: utf8ToBase64(htmlContent),
+          branch: "main",
+          sha
+        })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(`GitHub PUT (${resp.status}): ${err.message || "No se pudo subir index.html"}`);
+      }
+      return await resp.json();
+    }
+
+    // Gemini API: generar index.html actualizado
+    async function askGeminiEdit(cfg, currentHtml, userPrompt) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg.model)}:generateContent?key=${encodeURIComponent(cfg.geminiKey)}`;
+
+      const contextNotas = recentNotes.length
+        ? `\nCambios recientes en esta sesión:\n- ${recentNotes.slice(-4).join("\n- ")}\n`
+        : "";
+
+      const systemText = [
+        "Eres un desarrollador web experto editando un archivo único index.html en producción.",
+        "REGLAS ESTRICTAS:",
+        "1. Aplica ÚNICAMENTE el cambio solicitado por el usuario.",
+        "2. Mantén intactas todas las funciones existentes, constantes API_URL, cargarDesdeNube(), guardarEnNube(), claves de localStorage y estilos no afectados.",
+        "3. NO uses alert() ni prompt().",
+        "4. Devuelve SIEMPRE el archivo index.html COMPLETO de principio a fin. NUNCA abrevies código ni pongas comentarios como '// resto igual'.",
+        "5. Responde EXACTAMENTE usando estas 3 etiquetas sin texto fuera de ellas:",
+        "<RESUMEN>Explicación breve en español de 1 a 3 líneas de lo que cambiaste</RESUMEN>",
+        "<COMMIT>Mensaje corto de commit en español (máx 70 caracteres)</COMMIT>",
+        "<HTML>",
+        "<!DOCTYPE html>",
+        "...archivo completo...",
+        "</html>",
+        "</HTML>"
+      ].join("\n");
+
+      const userText = `Repositorio: ${cfg.repo}${contextNotas}\nSolicitud del usuario:\n${userPrompt}\n\nArchivo index.html actual:\n${currentHtml}`;
+
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemText }] },
+          contents: [{ role: "user", parts: [{ text: userText }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 65536
+          }
+        })
+      });
+
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        const msg = (data && data.error && data.error.message) || `Error HTTP ${resp.status}`;
+        throw new Error(`Gemini API: ${msg}`);
+      }
+
+      const candidate = data.candidates && data.candidates[0];
+      const text = candidate && candidate.content && candidate.content.parts
+        ? candidate.content.parts.map(p => p.text || "").join("")
+        : "";
+
+      if (!text) {
+        throw new Error("Gemini no devolvió contenido.");
+      }
+
+      const resumenMatch = text.match(/<RESUMEN>([\s\S]*?)<\/RESUMEN>/i);
+      const commitMatch = text.match(/<COMMIT>([\s\S]*?)<\/COMMIT>/i);
+      const htmlMatch = text.match(/<HTML>([\s\S]*?)<\/HTML>/i);
+
+      let newHtml = htmlMatch ? htmlMatch[1].trim() : "";
+      if (!newHtml) {
+        const fence = text.match(/```html\s*([\s\S]*?)```/i);
+        if (fence) newHtml = fence[1].trim();
+      }
+      newHtml = newHtml.replace(/^```html\s*/i, "").replace(/```\s*$/i, "").trim();
+
+      const hasHtmlBounds = /<!doctype html|<html/i.test(newHtml) && /<\/html>\s*$/i.test(newHtml);
+      if (!newHtml || !hasHtmlBounds) {
+        throw new Error("El código generado por Gemini parece incompleto (no se subió nada para proteger tu sitio). Intenta de nuevo o usa gemini-2.5-pro.");
+      }
+
+      return {
+        summary: resumenMatch ? resumenMatch[1].trim() : "Cambios aplicados en index.html.",
+        commitMessage: commitMatch ? commitMatch[1].trim().slice(0, 72) : "Actualizar index.html desde editor móvil",
+        html: newHtml
+      };
+    }
+
+    // Resumen simple de líneas modificadas
+    function buildSimpleDiff(oldText, newText) {
+      const a = oldText.split(/\r?\n/);
+      const b = newText.split(/\r?\n/);
+      const setA = new Set(a);
+      const setB = new Set(b);
+      const removed = a.filter(line => line.trim() && !setB.has(line)).slice(0, 35);
+      const added = b.filter(line => line.trim() && !setA.has(line)).slice(0, 35);
+
+      const out = [];
+      out.push(`<span class="diff-info">Líneas: ${a.length} → ${b.length} (${b.length - a.length >= 0 ? "+" : ""}${b.length - a.length})</span>`);
+      removed.forEach(l => out.push(`<span class="diff-del">- ${escapeHtml(l)}</span>`));
+      added.forEach(l => out.push(`<span class="diff-add">+ ${escapeHtml(l)}</span>`));
+      if (!removed.length && !added.length) {
+        out.push(`<span class="diff-info">Sin diferencias visibles de texto.</span>`);
+      }
+      return out.join("\n");
+    }
+
+    function attachPublishedCard(bubble, cfg, result, oldHtml, newHtml, pushResp) {
+      const commitSha = pushResp.commit && pushResp.commit.sha ? pushResp.commit.sha : "";
+      const shortSha = commitSha.slice(0, 7);
+      const commitUrl = (pushResp.commit && pushResp.commit.html_url) || `https://github.com/${cfg.owner}/${cfg.repo}/commits/main`;
+      const pagesUrl = `https://${cfg.owner}.github.io/${cfg.repo}/`;
+      const newFileSha = pushResp.content && pushResp.content.sha ? pushResp.content.sha : "";
+
+      bubble.innerHTML = `
+        <div><strong>✅ Publicado en <code>${escapeHtml(cfg.repo)}</code></strong></div>
+        <div style="margin-top:6px;">${escapeHtml(result.summary)}</div>
+        <div class="result-links">
+          <a class="mini-btn" href="${pagesUrl}" target="_blank" rel="noopener">🌐 Abrir web</a>
+          <a class="mini-btn" href="${commitUrl}" target="_blank" rel="noopener">📌 ${escapeHtml(shortSha || "Commit")}</a>
+          <button type="button" class="mini-btn btn-diff">🔍 Ver cambios</button>
+          <button type="button" class="mini-btn revert btn-revert">↩️ Revertir</button>
+        </div>
+      `;
+
+      const btnDiff = bubble.querySelector(".btn-diff");
+      btnDiff.addEventListener("click", () => {
+        let box = bubble.querySelector(".diff-box");
+        if (box) {
+          box.remove();
+          btnDiff.textContent = "🔍 Ver cambios";
+        } else {
+          box = document.createElement("div");
+          box.className = "diff-box";
+          box.innerHTML = buildSimpleDiff(oldHtml, newHtml);
+          bubble.appendChild(box);
+          btnDiff.textContent = "🙈 Ocultar cambios";
+          scrollBottom();
+        }
+      });
+
+      const btnRevert = bubble.querySelector(".btn-revert");
+      btnRevert.addEventListener("click", async () => {
+        btnRevert.disabled = true;
+        btnRevert.textContent = "⏳ Revirtiendo...";
+        try {
+          const latest = await fetchGithubIndex(cfg);
+          const shaToUse = latest.sha || newFileSha;
+          await pushGithubIndex(cfg, oldHtml, shaToUse, `Revertir: ${result.commitMessage}`);
+          btnRevert.textContent = "✅ Revertido";
+          showToast("↩️ Versión anterior restaurada en GitHub");
+        } catch (err) {
+          btnRevert.disabled = false;
+          btnRevert.textContent = "↩️ Revertir";
+          showToast("❌ " + err.message);
+        }
+      });
+
+      scrollBottom();
+    }
+
+    function attachConfirmCard(bubble, cfg, result, oldHtml, sha, warningMsg) {
+      bubble.innerHTML = `
+        <div><strong>👀 Revisión antes de subir a <code>${escapeHtml(cfg.repo)}</code></strong></div>
+        ${warningMsg ? `<div style="margin-top:6px; color:#fcd34d; font-size:0.82rem;">⚠️ ${escapeHtml(warningMsg)}</div>` : ""}
+        <div style="margin-top:6px;">${escapeHtml(result.summary)}</div>
+        <div class="diff-box">${buildSimpleDiff(oldHtml, result.html)}</div>
+        <div class="result-links">
+          <button type="button" class="mini-btn confirm btn-confirm-push">🚀 Subir a main</button>
+          <button type="button" class="mini-btn btn-cancel-push">✕ Cancelar</button>
+        </div>
+      `;
+
+      const btnConfirm = bubble.querySelector(".btn-confirm-push");
+      const btnCancel = bubble.querySelector(".btn-cancel-push");
+
+      btnConfirm.addEventListener("click", async () => {
+        btnConfirm.disabled = true;
+        btnCancel.disabled = true;
+        btnConfirm.textContent = "⏳ Subiendo...";
+        try {
+          const pushResp = await pushGithubIndex(cfg, result.html, sha, result.commitMessage);
+          recentNotes.push(`[${cfg.repo}] ${result.summary}`);
+          attachPublishedCard(bubble, cfg, result, oldHtml, result.html, pushResp);
+          showToast("✅ Publicado en main");
+        } catch (err) {
+          btnConfirm.disabled = false;
+          btnCancel.disabled = false;
+          btnConfirm.textContent = "🚀 Subir a main";
+          showToast("❌ " + err.message);
+        }
+      });
+
+      btnCancel.addEventListener("click", () => {
+        bubble.innerHTML = `<div style="color:var(--muted);">Operación cancelada. No se modificó GitHub.</div>`;
+      });
+
+      scrollBottom();
+    }
+
+    async function handleSend(promptText) {
+      const text = promptText.trim();
+      if (!text || busy) return;
+
+      const cfg = getConfig();
+      if (!cfg.geminiKey || !cfg.githubToken) {
+        els.settingsPanel.classList.add("open");
+        els.btnSettings.classList.add("active");
+        showToast("⚠️ Pega tu API Key de Gemini y token de GitHub primero");
+        return;
+      }
+
+      busy = true;
+      els.btnSend.disabled = true;
+      addUserMessage(text, cfg.repo);
+      els.promptInput.value = "";
+      autoResizeTextarea();
+
+      const { bubble } = createBotMessage();
+      const steps = [
+        { state: "loading", text: `Leyendo index.html de ${cfg.repo}...` }
+      ];
+      renderSteps(bubble, steps);
+
+      try {
+        const { sha, html: currentHtml } = await fetchGithubIndex(cfg);
+        steps[0] = { state: "done", text: `index.html leído (${currentHtml.split(/\r?\n/).length} líneas)` };
+        steps.push({ state: "loading", text: `Generando cambio con ${cfg.model}...` });
+        renderSteps(bubble, steps);
+
+        const result = await askGeminiEdit(cfg, currentHtml, text);
+        steps[1] = { state: "done", text: "Código actualizado generado" };
+
+        if (result.html === currentHtml) {
+          bubble.innerHTML = `<div>ℹ️ Gemini no realizó cambios en el archivo.</div><div style="margin-top:6px; color:var(--muted);">${escapeHtml(result.summary)}</div>`;
+          return;
+        }
+
+        // Protección automática contra truncado accidental o pérdida de API_URL
+        let safetyWarning = "";
+        if (currentHtml.includes("const API_URL") && !result.html.includes("API_URL")) {
+          safetyWarning = "El código nuevo omitió API_URL. Revisa el diff antes de subir.";
+        } else if (result.html.length < currentHtml.length * 0.6) {
+          safetyWarning = "El archivo generado es mucho más corto que el original. Revisa antes de subir.";
+        }
+
+        if (!cfg.autoPush || safetyWarning) {
+          attachConfirmCard(bubble, cfg, result, currentHtml, sha, safetyWarning);
+          return;
+        }
+
+        steps.push({ state: "loading", text: `Subiendo a ${cfg.owner}/${cfg.repo} (main)...` });
+        renderSteps(bubble, steps);
+
+        const pushResp = await pushGithubIndex(cfg, result.html, sha, result.commitMessage);
+        recentNotes.push(`[${cfg.repo}] ${result.summary}`);
+        attachPublishedCard(bubble, cfg, result, currentHtml, result.html, pushResp);
+        showToast("✅ Publicado en GitHub");
+      } catch (err) {
+        bubble.innerHTML = `<div class="error-text"><strong>❌ Error:</strong> ${escapeHtml(err.message)}</div>`;
+      } finally {
+        busy = false;
+        els.btnSend.disabled = false;
+        scrollBottom();
+      }
+    }
+
+    function autoResizeTextarea() {
+      els.promptInput.style.height = "auto";
+      els.promptInput.style.height = Math.min(els.promptInput.scrollHeight, 130) + "px";
+    }
+
+    // Eventos UI
+    els.btnSettings.addEventListener("click", () => {
+      const open = els.settingsPanel.classList.toggle("open");
+      els.btnSettings.classList.toggle("active", open);
+    });
+
+    els.btnSaveSettings.addEventListener("click", saveSettingsUI);
+
+    els.btnClearKeys.addEventListener("click", () => {
+      Object.values(STORAGE).forEach(k => localStorage.removeItem(k));
+      els.inputGeminiKey.value = "";
+      els.inputGithubToken.value = "";
+      els.inputGithubOwner.value = DEFAULT_OWNER;
+      els.selectModel.value = DEFAULT_MODEL;
+      els.chkAutoPush.checked = true;
+      els.statusDot.classList.remove("ready");
+      showToast("🗑️ Credenciales borradas del dispositivo");
+    });
+
+    document.querySelectorAll("[data-toggle]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById(btn.dataset.toggle);
+        if (!target) return;
+        target.type = target.type === "password" ? "text" : "password";
+      });
+    });
+
+    els.repoSelect.addEventListener("change", () => {
+      localStorage.setItem(STORAGE.repo, els.repoSelect.value);
+      showToast(`📁 Repositorio activo: ${els.repoSelect.value}`);
+    });
+
+    els.btnClearChat.addEventListener("click", () => {
+      recentNotes = [];
+      els.chatFeed.querySelectorAll(".msg").forEach(m => m.remove());
+      if (els.welcomeCard) els.welcomeCard.style.display = "block";
+      showToast("🧹 Chat limpiado");
+    });
+
+    document.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        els.promptInput.value = chip.dataset.prompt || "";
+        autoResizeTextarea();
+        els.promptInput.focus();
+      });
+    });
+
+    els.promptInput.addEventListener("input", autoResizeTextarea);
+
+    els.promptInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 640) {
+        e.preventDefault();
+        handleSend(els.promptInput.value);
+      }
+    });
+
+    els.chatForm.addEventListener("submit", e => {
+      e.preventDefault();
+      handleSend(els.promptInput.value);
+    });
+
+    // Inicio
+    loadSettingsUI();
+  </script>
+</body>
+</html>
