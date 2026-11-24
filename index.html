@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestor de Pausas - Diurno, Nocturno y Jhover</title>
+  <style>
+    :root {
+      --bg-page: #f1f5f9;
+      --bg-card: #ffffff;
+      --primary: #1e3a8a;
+      --primary-hover: #1d4ed8;
+      --night-primary: #312e81;
+      --jhover-primary: #0f766e;
+      --accent: #0284c7;
+      --success: #059669;
+      --danger: #dc2626;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    /* Tabs de Navegación */
+    .tabs-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 180px;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      border: 2px solid var(--border);
+      background-color: #ffffff;
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      border-color: #cbd5e1;
+      color: var(--text-main);
+    }
+
+    .tab-btn.active-day {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: #ffffff;
+      border-color: #1e3a8a;
+      box-shadow: var(--shadow);
+    }
+
+    .tab-btn.active-night {
+      background: linear-gradient(135deg, #090d16 0%, #312e81 100%);
+      color: #ffffff;
+      border-color: #312e81;
+      box-shadow: var(--shadow);
+    }
+
+    .tab-btn.active-jhover {
+      background: linear-gradient(135deg, #042f2e 0%, #0f766e 100%);
+      color: #ffffff;
+      border-color: #0f766e;
+      box-shadow: var(--shadow);
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: #ffffff;
+      padding: 20px 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      transition: background 0.3s ease;
+    }
+
+    .header.night-theme {
+      background: linear-gradient(135deg, #090d16 0%, #312e81 100%);
+    }
+
+    .header.jhover-theme {
+      background: linear-gradient(135deg, #042f2e 0%, #0f766e 100%);
+    }
+
+    .header-title h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .header-title p {
+      font-size: 0.875rem;
+      color: #cbd5e1;
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 0.925rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.18s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-aleatorio {
+      background-color: #38bdf8;
+      color: #0f172a;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35);
+    }
+
+    .btn-aleatorio:hover {
+      background-color: #7dd3fc;
+    }
+
+    .btn-copy {
+      background-color: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-copy:hover {
+      background-color: rgba(255, 255, 255, 0.24);
+    }
+
+    /* Main Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 860px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .badge-count {
+      background-color: #e0e7ff;
+      color: #1e3a8a;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    /* Add Operator Form */
+    .add-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .add-form input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .add-form input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-add {
+      background-color: var(--primary);
+      color: #ffffff;
+      padding: 8px 14px;
+      font-size: 0.875rem;
+    }
+
+    .btn-add:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Operator List */
+    .operator-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      max-height: 540px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .operator-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: #f8fafc;
+      transition: background-color 0.15s;
+    }
+
+    .operator-item.present {
+      background-color: #ffffff;
+      border-color: #cbd5e1;
+    }
+
+    .operator-item.absent {
+      opacity: 0.62;
+    }
+
+    .operator-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .operator-id {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .operator-name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .operator-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      transition: 0.25s;
+      border-radius: 999px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.25s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--success);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 2px 5px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+
+    .btn-delete:hover {
+      color: var(--danger);
+      background-color: #fee2e2;
+    }
+
+    .list-footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .link-reset {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 0.78rem;
+      text-decoration: underline;
+    }
+
+    /* Shift Cards Grid */
+    .shifts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 580px) {
+      .shifts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .shift-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background-color: #ffffff;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .shift-header {
+      padding: 11px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+
+    .shift-time {
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .shift-rule {
+      font-size: 0.73rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background-color: rgba(255, 255, 255, 0.75);
+    }
+
+    .c-blue .shift-header   { background-color: #dbeafe; color: #1e3a8a; }
+    .c-green .shift-header  { background-color: #d1fae5; color: #065f46; }
+    .c-amber .shift-header  { background-color: #fef3c7; color: #92400e; }
+    .c-orange .shift-header { background-color: #ffedd5; color: #9a3412; }
+    .c-indigo .shift-header { background-color: #e0e7ff; color: #3730a3; }
+    .c-purple .shift-header { background-color: #f3e8ff; color: #6b21a8; }
+    .c-teal .shift-header   { background-color: #ccfbf1; color: #115e59; }
+
+    .shift-body {
+      padding: 14px;
+      min-height: 115px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      transition: background-color 0.15s ease;
+    }
+
+    .shift-body.drag-over {
+      background-color: #e0f2fe;
+      outline: 2px dashed #0284c7;
+      outline-offset: -4px;
+    }
+
+    .agent-pill {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      font-weight: 600;
+      font-size: 0.88rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+      animation: fadeIn 0.22s ease;
+    }
+
+    .agent-pill:hover {
+      border-color: #94a3b8;
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.08);
+    }
+
+    .agent-pill:active {
+      cursor: grabbing;
+    }
+
+    .agent-pill.dragging {
+      opacity: 0.45;
+      transform: scale(0.98);
+    }
+
+    .agent-pill-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .agent-pill-left::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .drag-grip {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      letter-spacing: -1px;
+      flex-shrink: 0;
+    }
+
+    .empty-slot {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-style: italic;
+      pointer-events: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Pestañas de Turno -->
+    <div class="tabs-bar">
+      <button type="button" class="tab-btn active-day" id="tabDiurno">
+        ☀️ Turno Diurno
+      </button>
+      <button type="button" class="tab-btn" id="tabNocturno">
+        🌙 Turno Nocturno
+      </button>
+      <button type="button" class="tab-btn" id="tabJhover">
+        🌙 Jhover
+      </button>
+    </div>
+
+    <!-- Encabezado Dinámico -->
+    <header class="header" id="mainHeader">
+      <div class="header-title">
+        <h1 id="headerTitulo">Gestor de Pausas — Turno Diurno</h1>
+        <p id="headerSubtitulo">Arrastra cualquier operador entre horarios para reacomodarlo manualmente</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-aleatorio" id="btnAleatorio" type="button">
+          🎲 ALEATORIO DIURNO
+        </button>
+        <button class="btn btn-copy" id="btnCopiar" type="button">
+          📋 Copiar reparto
+        </button>
+      </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="dashboard-grid">
+      <!-- Panel Izquierdo: Asistencia -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title" id="tituloAsistencia">Asistencia Diurno</h2>
+          <span class="badge-count" id="contadorPresentes">0 / 0 presentes</span>
+        </div>
+
+        <form class="add-form" id="formAgregar">
+          <input type="text" id="inputNuevoOperador" placeholder="Agregar operador..." maxlength="45" required />
+          <button class="btn btn-add" type="submit">Agregar</button>
+        </form>
+
+        <ul class="operator-list" id="listaOperadores"></ul>
+
+        <div class="list-footer">
+          <span>Guardado automático</span>
+          <button type="button" class="link-reset" id="btnRestaurar">Restaurar lista base</button>
+        </div>
+      </section>
+
+      <!-- Panel Derecho 1: Bloques de Horario Diurno -->
+      <section class="card" id="panelDiurno">
+        <div class="card-header">
+          <h2 class="card-title">Distribución de Pausas — Diurno</h2>
+          <span class="badge-count" id="estadoSorteoDiurno">Listo para sortear</span>
+        </div>
+
+        <div class="shifts-grid">
+          <div class="shift-card c-blue">
+            <div class="shift-header">
+              <span class="shift-time">🕒 12:15</span>
+              <span class="shift-rule" id="badge-day-1215">1 operador</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="diurno" data-slot="t1215" id="day-t1215">
+              <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-green">
+            <div class="shift-header">
+              <span class="shift-time">🕒 1:00</span>
+              <span class="shift-rule" id="badge-day-100">Pareja (2)</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="diurno" data-slot="t100" id="day-t100">
+              <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-amber">
+            <div class="shift-header">
+              <span class="shift-time">🕒 1:45</span>
+              <span class="shift-rule" id="badge-day-145">Pareja (2)</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="diurno" data-slot="t145" id="day-t145">
+              <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-orange">
+            <div class="shift-header">
+              <span class="shift-time">🕒 2:15</span>
+              <span class="shift-rule" id="badge-day-215">Bloque final</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="diurno" data-slot="t215" id="day-t215">
+              <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel Derecho 2: Bloques de Horario Nocturno -->
+      <section class="card hidden" id="panelNocturno">
+        <div class="card-header">
+          <h2 class="card-title">Distribución de Pausas — Nocturno (0:45 min)</h2>
+          <span class="badge-count" id="estadoSorteoNocturno">Listo para sortear</span>
+        </div>
+
+        <div class="shifts-grid">
+          <div class="shift-card c-indigo">
+            <div class="shift-header">
+              <span class="shift-time">🌙 4:15 – 5:00</span>
+              <span class="shift-rule" id="badge-night-b1">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b1" id="night-b1">
+              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-blue">
+            <div class="shift-header">
+              <span class="shift-time">🌙 5:05 – 5:50</span>
+              <span class="shift-rule" id="badge-night-b2">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b2" id="night-b2">
+              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-green">
+            <div class="shift-header">
+              <span class="shift-time">🌙 7:00 – 7:45</span>
+              <span class="shift-rule" id="badge-night-b3">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b3" id="night-b3">
+              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-amber">
+            <div class="shift-header">
+              <span class="shift-time">🌙 7:50 – 8:35</span>
+              <span class="shift-rule" id="badge-night-b4">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b4" id="night-b4">
+              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-orange">
+            <div class="shift-header">
+              <span class="shift-time">🌙 8:40 – 9:25</span>
+              <span class="shift-rule" id="badge-night-b5">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b5" id="night-b5">
+              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-purple">
+            <div class="shift-header">
+              <span class="shift-time">🌙 9:30 – 10:15</span>
+              <span class="shift-rule" id="badge-night-b6">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b6" id="night-b6">
+              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel Derecho 3: Bloques de Horario Jhover -->
+      <section class="card hidden" id="panelJhover">
+        <div class="card-header">
+          <h2 class="card-title">Distribución de Pausas — Jhover (0:45 min)</h2>
+          <span class="badge-count" id="estadoSorteoJhover">Listo para sortear</span>
+        </div>
+
+        <div class="shifts-grid">
+          <div class="shift-card c-teal">
+            <div class="shift-header">
+              <span class="shift-time">🌙 4:15 – 5:00</span>
+              <span class="shift-rule" id="badge-jhover-b1">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="jhover" data-slot="b1" id="jhover-b1">
+              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-blue">
+            <div class="shift-header">
+              <span class="shift-time">🌙 5:05 – 5:50</span>
+              <span class="shift-rule" id="badge-jhover-b2">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="jhover" data-slot="b2" id="jhover-b2">
+              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-green">
+            <div class="shift-header">
+              <span class="shift-time">🌙 7:00 – 7:45</span>
+              <span class="shift-rule" id="badge-jhover-b3">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="jhover" data-slot="b3" id="jhover-b3">
+              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-amber">
+            <div class="shift-header">
+              <span class="shift-time">🌙 7:50 – 8:35</span>
+              <span class="shift-rule" id="badge-jhover-b4">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="jhover" data-slot="b4" id="jhover-b4">
+              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-orange">
+            <div class="shift-header">
+              <span class="shift-time">🌙 8:40 – 9:25</span>
+              <span class="shift-rule" id="badge-jhover-b5">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="jhover" data-slot="b5" id="jhover-b5">
+              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
+            </div>
+          </div>
+
+          <div class="shift-card c-purple">
+            <div class="shift-header">
+              <span class="shift-time">🌙 9:30 – 10:15</span>
+              <span class="shift-rule" id="badge-jhover-b6">Grupo</span>
+            </div>
+            <div class="shift-body dropzone" data-turno="jhover" data-slot="b6" id="jhover-b6">
+              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const KEYS = {
+      dayOps: "cc_pausas_diurno_ops_v7",
+      dayReparto: "cc_pausas_diurno_rep_v7",
+      nightOps: "cc_pausas_nocturno_ops_v7",
+      nightReparto: "cc_pausas_nocturno_rep_v7",
+      jhoverOps: "cc_pausas_jhover_ops_v7",
+      jhoverReparto: "cc_pausas_jhover_rep_v7"
+    };
+
+    const DEFECTO_DIURNO = [
+      { nombre: "Rafa", asistio: true },
+      { nombre: "Diego", asistio: true },
+      { nombre: "Alonso", asistio: true },
+      { nombre: "Sadith", asistio: true },
+      { nombre: "Charisse", asistio: true },
+      { nombre: "Steven", asistio: true },
+      { nombre: "Fabri", asistio: true },
+      { nombre: "Jose", asistio: true },
+      { nombre: "Marcos", asistio: false },
+      { nombre: "Danny", asistio: false }
+    ];
+
+    const DEFECTO_NOCTURNO = [
+      { nombre: "GIANELLA", asistio: true },
+      { nombre: "LEO", asistio: true },
+      { nombre: "RUBIO, JUAN", asistio: true },
+      { nombre: "ANGEL", asistio: true },
+      { nombre: "RODRIGUEZ, JUNIOR", asistio: true },
+      { nombre: "DIAZ, RAUL", asistio: true },
+      { nombre: "CARRANZA, DELIA", asistio: true },
+      { nombre: "AREVALO, HILDELBRANDO", asistio: true },
+      { nombre: "LIZARRAGA, JOSE", asistio: true },
+      { nombre: "ALEJOS ALTAMIRANO, THONY", asistio: true },
+      { nombre: "CARPIO, JESUS", asistio: true },
+      { nombre: "LEON, SHANDE", asistio: true },
+      { nombre: "FLORES, MARTIN", asistio: true },
+      { nombre: "GIRIBALDI, REGINA", asistio: true },
+      { nombre: "LAURA, MARTIN", asistio: true },
+      { nombre: "FIGUEROA, MARIANELLA", asistio: true },
+      { nombre: "MIRANDA, JENNY", asistio: true },
+      { nombre: "REATEGUI, GABRIELA", asistio: true },
+      { nombre: "PATRICIA", asistio: true },
+      { nombre: "CHOQUE, YUDEL", asistio: true },
+      { nombre: "YUPTON, YOSEPH", asistio: true },
+      { nombre: "HUERTAS, ROMAN ALEXIS", asistio: true }
+    ];
+
+    const DEFECTO_JHOVER = [
+      { nombre: "Delgado Castillo, Antony Nicol", asistio: true },
+      { nombre: "Ocaña Caballero, Ronaldo", asistio: true },
+      { nombre: "Colunga Velasquez, Gesron Jesus", asistio: true },
+      { nombre: "Cadillo Castro, Neel Arthur", asistio: true },
+      { nombre: "Torres Beltran, Antonella Nicole", asistio: true },
+      { nombre: "Mitma Lopez, Elvis Sebastian", asistio: true },
+      { nombre: "Tejada, Adrian", asistio: true },
+      { nombre: "Pajuelo Torres, Victor Andy", asistio: true },
+      { nombre: "Villanueva Ccoyllo, Flor de María", asistio: true },
+      { nombre: "Chapoñán Reyes, César Hamilton", asistio: true },
+      { nombre: "Bravo Palomino, Reyson", asistio: true },
+      { nombre: "Menacho Rivadeneira, Anghela", asistio: true },
+      { nombre: "Carreño Sotelo, Victor Martin", asistio: true }
+    ];
+
+    let turnoActivo = "diurno";
+    let dragState = null;
+
+    let estado = {
+      diurno: {
+        operadores: cargarStorage(KEYS.dayOps, DEFECTO_DIURNO),
+        reparto: cargarStorage(KEYS.dayReparto, null)
+      },
+      nocturno: {
+        operadores: cargarStorage(KEYS.nightOps, DEFECTO_NOCTURNO),
+        reparto: cargarStorage(KEYS.nightReparto, null)
+      },
+      jhover: {
+        operadores: cargarStorage(KEYS.jhoverOps, DEFECTO_JHOVER),
+        reparto: cargarStorage(KEYS.jhoverReparto, null)
+      }
+    };
+
+    const listaEl = document.getElementById("listaOperadores");
+    const contadorEl = document.getElementById("contadorPresentes");
+    const toastEl = document.getElementById("toast");
+
+    function cargarStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed !== null) return parsed;
+        }
+      } catch (e) {}
+      return fallback ? JSON.parse(JSON.stringify(fallback)) : null;
+    }
+
+    function guardarStorage(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    function getStorageKeys(turno) {
+      if (turno === "diurno") return { ops: KEYS.dayOps, rep: KEYS.dayReparto };
+      if (turno === "nocturno") return { ops: KEYS.nightOps, rep: KEYS.nightReparto };
+      return { ops: KEYS.jhoverOps, rep: KEYS.jhoverReparto };
+    }
+
+    function mostrarToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toastEl._timer);
+      toastEl._timer = setTimeout(() => toastEl.classList.remove("show"), 2600);
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function esJoseDiurno(nombre) {
+      const normalizado = nombre.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return normalizado === "jose";
+    }
+
+    function mezclarFisherYates(array) {
+      const copia = [...array];
+      for (let i = copia.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copia[i], copia[j]] = [copia[j], copia[i]];
+      }
+      return copia;
+    }
+
+    function cambiarTab(nuevoTurno) {
+      turnoActivo = nuevoTurno;
+
+      document.getElementById("tabDiurno").className = turnoActivo === "diurno" ? "tab-btn active-day" : "tab-btn";
+      document.getElementById("tabNocturno").className = turnoActivo === "nocturno" ? "tab-btn active-night" : "tab-btn";
+      document.getElementById("tabJhover").className = turnoActivo === "jhover" ? "tab-btn active-jhover" : "tab-btn";
+
+      const header = document.getElementById("mainHeader");
+      if (turnoActivo === "diurno") {
+        header.className = "header";
+        document.getElementById("headerTitulo").textContent = "Gestor de Pausas — Turno Diurno";
+        document.getElementById("headerSubtitulo").textContent = "Arrastra cualquier operador entre horarios para reacomodarlo manualmente";
+        document.getElementById("btnAleatorio").textContent = "🎲 ALEATORIO DIURNO";
+        document.getElementById("tituloAsistencia").textContent = "Asistencia Diurno";
+      } else if (turnoActivo === "nocturno") {
+        header.className = "header night-theme";
+        document.getElementById("headerTitulo").textContent = "Gestor de Pausas — Turno Nocturno";
+        document.getElementById("headerSubtitulo").textContent = "Arrastra operadores entre bloques · Agrupación automática según asistencia";
+        document.getElementById("btnAleatorio").textContent = "🎲 ALEATORIO NOCTURNO";
+        document.getElementById("tituloAsistencia").textContent = "Asistencia Nocturno";
+      } else {
+        header.className = "header jhover-theme";
+        document.getElementById("headerTitulo").textContent = "Gestor de Pausas — Jhover";
+        document.getElementById("headerSubtitulo").textContent = "Arrastra operadores entre bloques · Horarios de 4:15 a 10:15";
+        document.getElementById("btnAleatorio").textContent = "🎲 ALEATORIO Jhover";
+        document.getElementById("tituloAsistencia").textContent = "Asistencia Jhover";
+      }
+
+      document.getElementById("panelDiurno").classList.toggle("hidden", turnoActivo !== "diurno");
+      document.getElementById("panelNocturno").classList.toggle("hidden", turnoActivo !== "nocturno");
+      document.getElementById("panelJhover").classList.toggle("hidden", turnoActivo !== "jhover");
+
+      renderListaOperadores();
+    }
+
+    function renderListaOperadores() {
+      const lista = estado[turnoActivo].operadores;
+      listaEl.innerHTML = "";
+      let presentes = 0;
+
+      lista.forEach((op, index) => {
+        if (op.asistio) presentes++;
+
+        const li = document.createElement("li");
+        li.className = `operator-item ${op.asistio ? "present" : "absent"}`;
+
+        li.innerHTML = `
+          <div class="operator-left">
+            <span class="operator-id">${index + 1}</span>
+            <span class="operator-name" title="${escapeHtml(op.nombre)}">${escapeHtml(op.nombre)}</span>
+          </div>
+          <div class="operator-controls">
+            <label class="switch" title="Marcar asistencia">
+              <input type="checkbox" ${op.asistio ? "checked" : ""} data-index="${index}" class="chk-asistio" />
+              <span class="slider"></span>
+            </label>
+            <button type="button" class="btn-delete" data-index="${index}" title="Eliminar operador">✕</button>
+          </div>
+        `;
+        listaEl.appendChild(li);
+      });
+
+      contadorEl.textContent = `${presentes} / ${lista.length} presentes`;
+    }
+
+    function obtenerPresentesUnicos(turno) {
+      const unicos = [];
+      estado[turno].operadores.forEach(op => {
+        const limpio = op.nombre.trim();
+        if (op.asistio && limpio && !unicos.includes(limpio)) {
+          unicos.push(limpio);
+        }
+      });
+      return unicos;
+    }
+
+    // Distribuye equitativamente en los 6 bloques horarios (4:15 a 10:15) sin dejar ninguno vacío
+    function distribuirEnSeisBloques(mezclados) {
+      const total = mezclados.length;
+      const bloques = ["b1", "b2", "b3", "b4", "b5", "b6"];
+      const resultado = { b1: [], b2: [], b3: [], b4: [], b5: [], b6: [] };
+      const numBloques = bloques.length;
+
+      const basePorBloque = Math.floor(total / numBloques); // Ej: 13 -> 2 por bloque; 19 -> 3 por bloque
+      const sobrantes = total % numBloques;                 // Ej: 13 -> 1 extra al final; 19 -> 1 extra al final
+
+      // Los primeros bloques llevan `basePorBloque` (ej. parejas de 2) y los últimos absorben los `sobrantes`
+      let indice = 0;
+      for (let i = 0; i < numBloques; i++) {
+        const cupo = i >= (numBloques - sobrantes) ? basePorBloque + 1 : basePorBloque;
+        resultado[bloques[i]] = mezclados.slice(indice, indice + cupo);
+        indice += cupo;
+      }
+
+      return resultado;
+    }
+
+    function generarAleatorio() {
+      const presentes = obtenerPresentesUnicos(turnoActivo);
+      if (presentes.length === 0) {
+        mostrarToast("⚠️ Marca al menos un operador como presente.");
+        return;
+      }
+
+      const horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const keys = getStorageKeys(turnoActivo);
+
+      if (turnoActivo === "diurno") {
+        let joseNombre = null;
+        const otrosPresentes = [];
+
+        presentes.forEach(nombre => {
+          if (esJoseDiurno(nombre) && !joseNombre) {
+            joseNombre = nombre;
+          } else {
+            otrosPresentes.push(nombre);
+          }
+        });
+
+        const mezclados = mezclarFisherYates(otrosPresentes);
+
+        const t1215 = mezclados.slice(0, 1);
+        const t100  = mezclados.slice(1, 3);
+        const t145  = mezclados.slice(3, 5);
+        let t215    = mezclados.slice(5);
+
+        if (joseNombre) {
+          t215.push(joseNombre);
+          t215 = mezclarFisherYates(t215);
+        }
+
+        const reparto = { t1215, t100, t145, t215, hora: horaActual };
+        estado.diurno.reparto = reparto;
+        guardarStorage(keys.rep, reparto);
+        renderRepartoDiurno(reparto);
+      } else {
+        const mezclados = mezclarFisherYates(presentes);
+        const dist = distribuirEnSeisBloques(mezclados);
+
+        const reparto = { ...dist, hora: horaActual };
+        estado[turnoActivo].reparto = reparto;
+        guardarStorage(keys.rep, reparto);
+
+        if (turnoActivo === "nocturno") {
+          renderRepartoNocturno(reparto);
+        } else {
+          renderRepartoJhover(reparto);
+        }
+      }
+
+      const etiqueta = turnoActivo === "jhover" ? "Jhover" : turnoActivo;
+      mostrarToast(`✅ Pausas ${etiqueta} generadas (${presentes.length} operadores)`);
+    }
+
+    function crearPildoraOperador(nombre, turno, slotKey) {
+      const span = document.createElement("span");
+      span.className = "agent-pill";
+      span.draggable = true;
+      span.dataset.nombre = nombre;
+      span.dataset.turno = turno;
+      span.dataset.slot = slotKey;
+
+      span.innerHTML = `
+        <span class="agent-pill-left">${escapeHtml(nombre)}</span>
+        <span class="drag-grip" title="Arrastrar a otro horario">⋮⋮</span>
+      `;
+
+      span.addEventListener("dragstart", (e) => {
+        dragState = { turno, fromSlot: slotKey, nombre };
+        span.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", nombre);
+      });
+
+      span.addEventListener("dragend", () => {
+        span.classList.remove("dragging");
+        dragState = null;
+        document.querySelectorAll(".dropzone").forEach(dz => dz.classList.remove("drag-over"));
+      });
+
+      return span;
+    }
+
+    function renderSlot(elementId, badgeId, nombres, turno, slotKey) {
+      const el = document.getElementById(elementId);
+      const badge = document.getElementById(badgeId);
+      el.innerHTML = "";
+
+      const lista = nombres || [];
+      if (badge) {
+        badge.textContent = `${lista.length} ${lista.length === 1 ? "operador" : "operadores"}`;
+      }
+
+      if (lista.length === 0) {
+        el.innerHTML = `<span class="empty-slot">Arrastra aquí o sortea</span>`;
+        return;
+      }
+
+      lista.forEach(n => {
+        el.appendChild(crearPildoraOperador(n, turno, slotKey));
+      });
+    }
+
+    function renderRepartoDiurno(rep) {
+      if (!rep) return;
+      renderSlot("day-t1215", "badge-day-1215", rep.t1215, "diurno", "t1215");
+      renderSlot("day-t100", "badge-day-100", rep.t100, "diurno", "t100");
+      renderSlot("day-t145", "badge-day-145", rep.t145, "diurno", "t145");
+      renderSlot("day-t215", "badge-day-215", rep.t215, "diurno", "t215");
+      document.getElementById("estadoSorteoDiurno").textContent = `Actualizado ${rep.hora || ""}`;
+    }
+
+    function renderRepartoNocturno(rep) {
+      if (!rep) return;
+      renderSlot("night-b1", "badge-night-b1", rep.b1, "nocturno", "b1");
+      renderSlot("night-b2", "badge-night-b2", rep.b2, "nocturno", "b2");
+      renderSlot("night-b3", "badge-night-b3", rep.b3, "nocturno", "b3");
+      renderSlot("night-b4", "badge-night-b4", rep.b4, "nocturno", "b4");
+      renderSlot("night-b5", "badge-night-b5", rep.b5, "nocturno", "b5");
+      renderSlot("night-b6", "badge-night-b6", rep.b6, "nocturno", "b6");
+      document.getElementById("estadoSorteoNocturno").textContent = `Actualizado ${rep.hora || ""}`;
+    }
+
+    function renderRepartoJhover(rep) {
+      if (!rep) return;
+      renderSlot("jhover-b1", "badge-jhover-b1", rep.b1, "jhover", "b1");
+      renderSlot("jhover-b2", "badge-jhover-b2", rep.b2, "jhover", "b2");
+      renderSlot("jhover-b3", "badge-jhover-b3", rep.b3, "jhover", "b3");
+      renderSlot("jhover-b4", "badge-jhover-b4", rep.b4, "jhover", "b4");
+      renderSlot("jhover-b5", "badge-jhover-b5", rep.b5, "jhover", "b5");
+      renderSlot("jhover-b6", "badge-jhover-b6", rep.b6, "jhover", "b6");
+      document.getElementById("estadoSorteoJhover").textContent = `Actualizado ${rep.hora || ""}`;
+    }
+
+    // Configurar zonas donde se pueden soltar operadores (Dropzones)
+    document.querySelectorAll(".dropzone").forEach(zone => {
+      zone.addEventListener("dragover", (e) => {
+        if (!dragState) return;
+        if (dragState.turno !== zone.dataset.turno) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        zone.classList.add("drag-over");
+      });
+
+      zone.addEventListener("dragleave", (e) => {
+        if (!zone.contains(e.relatedTarget)) {
+          zone.classList.remove("drag-over");
+        }
+      });
+
+      zone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        zone.classList.remove("drag-over");
+        if (!dragState) return;
+
+        const targetTurno = zone.dataset.turno;
+        const targetSlot = zone.dataset.slot;
+        const { turno, fromSlot, nombre } = dragState;
+
+        if (turno !== targetTurno || fromSlot === targetSlot) return;
+
+        const rep = estado[turno].reparto;
+        if (!rep) return;
+
+        rep[fromSlot] = rep[fromSlot].filter(item => item !== nombre);
+        if (!rep[targetSlot].includes(nombre)) {
+          rep[targetSlot].push(nombre);
+        }
+
+        const keys = getStorageKeys(turno);
+        guardarStorage(keys.rep, rep);
+
+        if (turno === "diurno") {
+          renderRepartoDiurno(rep);
+        } else if (turno === "nocturno") {
+          renderRepartoNocturno(rep);
+        } else {
+          renderRepartoJhover(rep);
+        }
+
+        mostrarToast(`↔️ ${nombre} movido de horario`);
+      });
+    });
+
+    function copiarReparto() {
+      const rep = estado[turnoActivo].reparto;
+      if (!rep) {
+        mostrarToast("⚠️ Primero presiona el botón ALEATORIO.");
+        return;
+      }
+
+      const f = arr => (arr && arr.length > 0 ? arr.join(", ") : "—");
+      let texto = "";
+
+      if (turnoActivo === "diurno") {
+        texto = [
+          "☀️ *REPARTO DE PAUSAS — DIURNO*",
+          `🕒 *12:15:* ${f(rep.t1215)}`,
+          `🕒 *1:00:* ${f(rep.t100)}`,
+          `🕒 *1:45:* ${f(rep.t145)}`,
+          `🕒 *2:15:* ${f(rep.t215)}`
+        ].join("\n");
+      } else {
+        const titulo = turnoActivo === "nocturno"
+          ? "🌙 *REPARTO DE PAUSAS — NOCTURNO*"
+          : "🌙 *REPARTO DE PAUSAS — JHOVER*";
+        texto = [
+          titulo,
+          `🕒 *4:15 - 5:00:* ${f(rep.b1)}`,
+          `🕒 *5:05 - 5:50:* ${f(rep.b2)}`,
+          `🕒 *7:00 - 7:45:* ${f(rep.b3)}`,
+          `🕒 *7:50 - 8:35:* ${f(rep.b4)}`,
+          `🕒 *8:40 - 9:25:* ${f(rep.b5)}`,
+          `🕒 *9:30 - 10:15:* ${f(rep.b6)}`
+        ].join("\n");
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto)
+          .then(() => mostrarToast("📋 Reparto copiado al portapapeles"))
+          .catch(() => fallbackCopiar(texto));
+      } else {
+        fallbackCopiar(texto);
+      }
+    }
+
+    function fallbackCopiar(texto) {
+      const ta = document.createElement("textarea");
+      ta.value = texto;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        mostrarToast("📋 Reparto copiado al portapapeles");
+      } catch (e) {
+        mostrarToast("❌ No se pudo copiar automáticamente");
+      }
+      document.body.removeChild(ta);
+    }
+
+    // Listeners
+    document.getElementById("tabDiurno").addEventListener("click", () => cambiarTab("diurno"));
+    document.getElementById("tabNocturno").addEventListener("click", () => cambiarTab("nocturno"));
+    document.getElementById("tabJhover").addEventListener("click", () => cambiarTab("jhover"));
+
+    listaEl.addEventListener("change", e => {
+      if (e.target.classList.contains("chk-asistio")) {
+        const idx = Number(e.target.dataset.index);
+        estado[turnoActivo].operadores[idx].asistio = e.target.checked;
+        guardarStorage(getStorageKeys(turnoActivo).ops, estado[turnoActivo].operadores);
+        renderListaOperadores();
+      }
+    });
+
+    listaEl.addEventListener("click", e => {
+      if (e.target.classList.contains("btn-delete")) {
+        const idx = Number(e.target.dataset.index);
+        const eliminado = estado[turnoActivo].operadores[idx].nombre;
+        estado[turnoActivo].operadores.splice(idx, 1);
+        guardarStorage(getStorageKeys(turnoActivo).ops, estado[turnoActivo].operadores);
+        renderListaOperadores();
+        mostrarToast(`🗑️ ${eliminado} eliminado`);
+      }
+    });
+
+    document.getElementById("formAgregar").addEventListener("submit", e => {
+      e.preventDefault();
+      const input = document.getElementById("inputNuevoOperador");
+      const nombre = input.value.trim();
+      if (!nombre) return;
+
+      const lista = estado[turnoActivo].operadores;
+      if (lista.some(op => op.nombre.toLowerCase() === nombre.toLowerCase())) {
+        mostrarToast("⚠️ Ese operador ya está en esta lista");
+        return;
+      }
+
+      lista.push({ nombre, asistio: true });
+      guardarStorage(getStorageKeys(turnoActivo).ops, lista);
+      renderListaOperadores();
+      input.value = "";
+      mostrarToast(`➕ ${nombre} agregado`);
+    });
+
+    document.getElementById("btnRestaurar").addEventListener("click", () => {
+      let base = DEFECTO_DIURNO;
+      if (turnoActivo === "nocturno") base = DEFECTO_NOCTURNO;
+      if (turnoActivo === "jhover") base = DEFECTO_JHOVER;
+
+      estado[turnoActivo].operadores = JSON.parse(JSON.stringify(base));
+      guardarStorage(getStorageKeys(turnoActivo).ops, estado[turnoActivo].operadores);
+      renderListaOperadores();
+      const etiqueta = turnoActivo === "jhover" ? "Jhover" : turnoActivo;
+      mostrarToast(`🔄 Lista base de ${etiqueta} restaurada`);
+    });
+
+    document.getElementById("btnAleatorio").addEventListener("click", generarAleatorio);
+    document.getElementById("btnCopiar").addEventListener("click", copiarReparto);
+
+    // Inicialización
+    renderListaOperadores();
+    if (estado.diurno.reparto) renderRepartoDiurno(estado.diurno.reparto);
+    if (estado.nocturno.reparto) renderRepartoNocturno(estado.nocturno.reparto);
+    if (estado.jhover.reparto) renderRepartoJhover(estado.jhover.reparto);
+  </script>
+</body>
+</html>
