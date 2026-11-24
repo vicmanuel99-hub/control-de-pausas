@@ -556,10 +556,79 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* Barra de estado en la nube */
+    .cloud-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      background-color: #ffffff;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+      font-size: 0.82rem;
+    }
+
+    .cloud-status {
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: #e0f2fe;
+      color: #0369a1;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cloud-status.ok {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+
+    .cloud-status.saving {
+      background-color: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .cloud-status.warn {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+
+    .btn-sync {
+      background-color: #f1f5f9;
+      color: var(--text-main);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .btn-sync:hover {
+      background-color: #e2e8f0;
+    }
+
+    .btn-sync:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Barra de sincronización con Google Sheets -->
+    <div class="cloud-bar">
+      <span id="cloudStatus" class="cloud-status">⏳ Conectando con Google Sheets...</span>
+      <button type="button" class="btn-sync" id="btnSyncNube">🔄 Recargar de la nube</button>
+    </div>
+
     <!-- Pestañas de Turno -->
     <div class="tabs-bar">
       <button type="button" class="tab-btn active-day" id="tabDiurno">
@@ -606,7 +675,7 @@
         <ul class="operator-list" id="listaOperadores"></ul>
 
         <div class="list-footer">
-          <span>Guardado automático</span>
+          <span>Guardado automático en Google Sheets</span>
           <button type="button" class="link-reset" id="btnRestaurar">Restaurar lista base</button>
         </div>
       </section>
@@ -806,6 +875,8 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwSoDIOPc93w9Hl4OXLu1aMnLFXUEuA0Lyj4GnRbgDPAgJFSFd4AUp9AgWMmIm-A8W1/exec";
+
     const KEYS = {
       dayOps: "cc_pausas_diurno_ops_v7",
       dayReparto: "cc_pausas_diurno_rep_v7",
@@ -890,6 +961,118 @@
     const listaEl = document.getElementById("listaOperadores");
     const contadorEl = document.getElementById("contadorPresentes");
     const toastEl = document.getElementById("toast");
+    const cloudStatusEl = document.getElementById("cloudStatus");
+    const btnSyncNubeEl = document.getElementById("btnSyncNube");
+
+    let saveDebounceTimer = null;
+    let saveInFlight = false;
+    let pendingSave = false;
+
+    function setCloudStatus(texto, tipo) {
+      if (!cloudStatusEl) return;
+      cloudStatusEl.textContent = texto;
+      cloudStatusEl.className = "cloud-status" + (tipo ? " " + tipo : "");
+    }
+
+    function formatearHoraActual(iso) {
+      try {
+        const d = iso ? new Date(iso) : new Date();
+        return d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function guardarTodoLocal() {
+      guardarStorage(KEYS.dayOps, estado.diurno.operadores);
+      guardarStorage(KEYS.dayReparto, estado.diurno.reparto);
+      guardarStorage(KEYS.nightOps, estado.nocturno.operadores);
+      guardarStorage(KEYS.nightReparto, estado.nocturno.reparto);
+      guardarStorage(KEYS.jhoverOps, estado.jhover.operadores);
+      guardarStorage(KEYS.jhoverReparto, estado.jhover.reparto);
+    }
+
+    function renderizarTodo() {
+      renderListaOperadores();
+      renderRepartoDiurno(estado.diurno.reparto);
+      renderRepartoNocturno(estado.nocturno.reparto);
+      renderRepartoJhover(estado.jhover.reparto);
+    }
+
+    async function cargarDesdeNube(mostrarAviso = false) {
+      setCloudStatus("⏳ Cargando desde Google Sheets...", "saving");
+      if (btnSyncNubeEl) btnSyncNubeEl.disabled = true;
+
+      try {
+        const resp = await fetch(`${API_URL}?t=${Date.now()}`);
+        const data = await resp.json();
+
+        if (data && data.ok && data.estado) {
+          ["diurno", "nocturno", "jhover"].forEach(t => {
+            if (data.estado[t] && Array.isArray(data.estado[t].operadores) && data.estado[t].operadores.length > 0) {
+              estado[t].operadores = data.estado[t].operadores;
+              estado[t].reparto = data.estado[t].reparto || null;
+            }
+          });
+          guardarTodoLocal();
+          renderizarTodo();
+          const hora = formatearHoraActual(data.actualizado);
+          setCloudStatus(`☁️ Sincronizado con Google Sheets${hora ? " · " + hora : ""}`, "ok");
+          if (mostrarAviso) mostrarToast("☁️ Datos actualizados desde la nube");
+        } else if (data && data.ok && !data.estado) {
+          // Hoja recién creada: subimos la configuración inicial
+          await ejecutarGuardadoNube();
+        } else {
+          throw new Error((data && data.error) || "Respuesta inválida");
+        }
+      } catch (err) {
+        setCloudStatus("⚠️ Modo local (sin conexión a Google Sheets)", "warn");
+        if (mostrarAviso) mostrarToast("⚠️ No se pudo conectar con Google Sheets");
+      } finally {
+        if (btnSyncNubeEl) btnSyncNubeEl.disabled = false;
+      }
+    }
+
+    function guardarEnNube(inmediato = false) {
+      guardarTodoLocal();
+      clearTimeout(saveDebounceTimer);
+      saveDebounceTimer = setTimeout(() => {
+        ejecutarGuardadoNube();
+      }, inmediato ? 0 : 350);
+    }
+
+    async function ejecutarGuardadoNube() {
+      if (saveInFlight) {
+        pendingSave = true;
+        return;
+      }
+      saveInFlight = true;
+      setCloudStatus("⏳ Guardando en Google Sheets...", "saving");
+
+      try {
+        const resp = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ estado })
+        });
+        const res = await resp.json();
+
+        if (res && res.ok) {
+          const hora = formatearHoraActual(res.actualizado);
+          setCloudStatus(`☁️ Guardado en Google Sheets${hora ? " · " + hora : ""}`, "ok");
+        } else {
+          throw new Error((res && res.error) || "Error al guardar");
+        }
+      } catch (err) {
+        setCloudStatus("⚠️ Error al guardar en la nube (guardado local activo)", "warn");
+      } finally {
+        saveInFlight = false;
+        if (pendingSave) {
+          pendingSave = false;
+          ejecutarGuardadoNube();
+        }
+      }
+    }
 
     function cargarStorage(key, fallback) {
       try {
@@ -1091,6 +1274,7 @@
         }
       }
 
+      guardarEnNube(true);
       const etiqueta = turnoActivo === "jhover" ? "Jhover" : turnoActivo;
       mostrarToast(`✅ Pausas ${etiqueta} generadas (${presentes.length} operadores)`);
     }
@@ -1212,6 +1396,7 @@
 
         const keys = getStorageKeys(turno);
         guardarStorage(keys.rep, rep);
+        guardarEnNube(true);
 
         if (turno === "diurno") {
           renderRepartoDiurno(rep);
@@ -1294,6 +1479,7 @@
         estado[turnoActivo].operadores[idx].asistio = e.target.checked;
         guardarStorage(getStorageKeys(turnoActivo).ops, estado[turnoActivo].operadores);
         renderListaOperadores();
+        guardarEnNube(false);
       }
     });
 
@@ -1304,6 +1490,7 @@
         estado[turnoActivo].operadores.splice(idx, 1);
         guardarStorage(getStorageKeys(turnoActivo).ops, estado[turnoActivo].operadores);
         renderListaOperadores();
+        guardarEnNube(true);
         mostrarToast(`🗑️ ${eliminado} eliminado`);
       }
     });
@@ -1323,6 +1510,7 @@
       lista.push({ nombre, asistio: true });
       guardarStorage(getStorageKeys(turnoActivo).ops, lista);
       renderListaOperadores();
+      guardarEnNube(true);
       input.value = "";
       mostrarToast(`➕ ${nombre} agregado`);
     });
@@ -1335,18 +1523,20 @@
       estado[turnoActivo].operadores = JSON.parse(JSON.stringify(base));
       guardarStorage(getStorageKeys(turnoActivo).ops, estado[turnoActivo].operadores);
       renderListaOperadores();
+      guardarEnNube(true);
       const etiqueta = turnoActivo === "jhover" ? "Jhover" : turnoActivo;
       mostrarToast(`🔄 Lista base de ${etiqueta} restaurada`);
     });
 
     document.getElementById("btnAleatorio").addEventListener("click", generarAleatorio);
     document.getElementById("btnCopiar").addEventListener("click", copiarReparto);
+    if (btnSyncNubeEl) {
+      btnSyncNubeEl.addEventListener("click", () => cargarDesdeNube(true));
+    }
 
-    // Inicialización
-    renderListaOperadores();
-    if (estado.diurno.reparto) renderRepartoDiurno(estado.diurno.reparto);
-    if (estado.nocturno.reparto) renderRepartoNocturno(estado.nocturno.reparto);
-    if (estado.jhover.reparto) renderRepartoJhover(estado.jhover.reparto);
+    // Inicialización local instantánea + sincronización con Google Sheets
+    renderizarTodo();
+    window.addEventListener("DOMContentLoaded", () => cargarDesdeNube(false));
   </script>
 </body>
 </html>
