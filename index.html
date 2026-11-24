@@ -1257,20 +1257,10 @@
           const restoOtros = mezclados.slice(1);
           const totalResto = restoOtros.length + (joseNombre ? 1 : 0);
 
-          let cupo100 = 0;
-          let cupo145 = 0;
-          if (joseNombre && totalResto === 1) {
-            cupo100 = 0;
-            cupo145 = 0;
-          } else if (joseNombre && totalResto === 2) {
-            cupo100 = 1;
-            cupo145 = 0;
-          } else {
-            const base = Math.floor(totalResto / 3);
-            const sobrantes = totalResto % 3;
-            cupo100 = base + (sobrantes >= 1 ? 1 : 0);
-            cupo145 = base + (sobrantes >= 2 ? 1 : 0);
-          }
+          const base = Math.floor(totalResto / 3);
+          const sobrantes = totalResto % 3;
+          const cupo100 = base;
+          const cupo145 = base + (sobrantes === 2 ? 1 : 0);
 
           t100 = restoOtros.slice(0, cupo100);
           t145 = restoOtros.slice(cupo100, cupo100 + cupo145);
