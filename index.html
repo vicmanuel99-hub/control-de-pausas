@@ -488,6 +488,92 @@
       transform: scale(0.95);
     }
 
+    .shift-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-delete-slot {
+      background-color: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #64748b;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+    }
+
+    .btn-delete-slot:hover:not(:disabled) {
+      background-color: #fee2e2;
+      border-color: #fca5a5;
+      color: var(--danger);
+    }
+
+    .btn-delete-slot:active:not(:disabled) {
+      transform: scale(0.94);
+    }
+
+    .btn-delete-slot:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .add-slot-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .add-slot-form input {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .add-slot-form input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+
+    .btn-add-slot {
+      background-color: var(--primary);
+      color: #ffffff;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .btn-add-slot:hover {
+      background-color: var(--primary-hover);
+    }
+
+    #panelNocturno .btn-add-slot {
+      background-color: var(--night-primary);
+    }
+
+    #panelNocturno .btn-add-slot:hover {
+      background-color: #4338ca;
+    }
+
+    #panelJhover .btn-add-slot {
+      background-color: var(--jhover-primary);
+    }
+
+    #panelJhover .btn-add-slot:hover {
+      background-color: #0d9488;
+    }
+
     .shift-rule {
       font-size: 0.73rem;
       font-weight: 600;
@@ -705,7 +791,7 @@
     <header class="header" id="mainHeader">
       <div class="header-title">
         <h1 id="headerTitulo">Gestor de Pausas — Turno Diurno</h1>
-        <p id="headerSubtitulo">Arrastra operadores entre horarios · Haz clic en cualquier horario para editarlo</p>
+        <p id="headerSubtitulo">Arrastra operadores entre horarios · Edita, añade o elimina tarjetas de horario</p>
       </div>
       <div class="header-actions">
         <button class="btn btn-aleatorio" id="btnAleatorio" type="button">
@@ -746,66 +832,15 @@
           <span class="badge-count" id="estadoSorteoDiurno">Listo para sortear</span>
         </div>
 
-        <div class="shifts-grid">
-          <div class="shift-card c-blue">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🕒</span>
-                <input type="text" class="shift-time-input" data-turno="diurno" data-slot="t1215" value="12:15" maxlength="32" aria-label="Editar horario 1 Diurno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-day-1215">1 operador</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="diurno" data-slot="t1215" id="day-t1215">
-              <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
-            </div>
-          </div>
+        <form class="add-slot-form" data-turno="diurno">
+          <input type="text" class="input-nuevo-horario" placeholder="Nuevo horario (ej. 3:00)..." maxlength="32" aria-label="Nuevo horario Diurno" />
+          <button type="submit" class="btn btn-add-slot">➕ Añadir horario</button>
+        </form>
 
-          <div class="shift-card c-green">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🕒</span>
-                <input type="text" class="shift-time-input" data-turno="diurno" data-slot="t100" value="1:00" maxlength="32" aria-label="Editar horario 2 Diurno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-day-100">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="diurno" data-slot="t100" id="day-t100">
-              <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-amber">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🕒</span>
-                <input type="text" class="shift-time-input" data-turno="diurno" data-slot="t145" value="1:45" maxlength="32" aria-label="Editar horario 3 Diurno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-day-145">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="diurno" data-slot="t145" id="day-t145">
-              <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-orange">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🕒</span>
-                <input type="text" class="shift-time-input" data-turno="diurno" data-slot="t215" value="2:15" maxlength="32" aria-label="Editar horario 4 Diurno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-day-215">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="diurno" data-slot="t215" id="day-t215">
-              <span class="empty-slot">Presiona ALEATORIO DIURNO</span>
-            </div>
-          </div>
-        </div>
+        <div class="shifts-grid" id="gridDiurno"></div>
 
         <div class="list-footer">
-          <span>Haz clic en cualquier horario para editarlo</span>
+          <span>Haz clic en un horario para editarlo · Usa ✕ para eliminar</span>
           <button type="button" class="link-reset btn-reset-horarios" data-turno="diurno">Restaurar horarios base</button>
         </div>
       </section>
@@ -817,94 +852,15 @@
           <span class="badge-count" id="estadoSorteoNocturno">Listo para sortear</span>
         </div>
 
-        <div class="shifts-grid">
-          <div class="shift-card c-indigo">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="nocturno" data-slot="b1" value="4:15 – 5:00" maxlength="32" aria-label="Editar horario 1 Nocturno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-night-b1">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b1" id="night-b1">
-              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
-            </div>
-          </div>
+        <form class="add-slot-form" data-turno="nocturno">
+          <input type="text" class="input-nuevo-horario" placeholder="Nuevo bloque horario (ej. 10:20 – 11:05)..." maxlength="32" aria-label="Nuevo horario Nocturno" />
+          <button type="submit" class="btn btn-add-slot">➕ Añadir horario</button>
+        </form>
 
-          <div class="shift-card c-blue">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="nocturno" data-slot="b2" value="5:05 – 5:50" maxlength="32" aria-label="Editar horario 2 Nocturno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-night-b2">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b2" id="night-b2">
-              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-green">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="nocturno" data-slot="b3" value="7:00 – 7:45" maxlength="32" aria-label="Editar horario 3 Nocturno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-night-b3">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b3" id="night-b3">
-              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-amber">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="nocturno" data-slot="b4" value="7:50 – 8:35" maxlength="32" aria-label="Editar horario 4 Nocturno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-night-b4">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b4" id="night-b4">
-              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-orange">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="nocturno" data-slot="b5" value="8:40 – 9:25" maxlength="32" aria-label="Editar horario 5 Nocturno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-night-b5">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b5" id="night-b5">
-              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-purple">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="nocturno" data-slot="b6" value="9:30 – 10:15" maxlength="32" aria-label="Editar horario 6 Nocturno" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-night-b6">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="nocturno" data-slot="b6" id="night-b6">
-              <span class="empty-slot">Presiona ALEATORIO NOCTURNO</span>
-            </div>
-          </div>
-        </div>
+        <div class="shifts-grid" id="gridNocturno"></div>
 
         <div class="list-footer">
-          <span>Haz clic en cualquier horario para editarlo</span>
+          <span>Haz clic en un horario para editarlo · Usa ✕ para eliminar</span>
           <button type="button" class="link-reset btn-reset-horarios" data-turno="nocturno">Restaurar horarios base</button>
         </div>
       </section>
@@ -916,94 +872,15 @@
           <span class="badge-count" id="estadoSorteoJhover">Listo para sortear</span>
         </div>
 
-        <div class="shifts-grid">
-          <div class="shift-card c-teal">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="jhover" data-slot="b1" value="4:15 – 5:00" maxlength="32" aria-label="Editar horario 1 Jhover" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-jhover-b1">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="jhover" data-slot="b1" id="jhover-b1">
-              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
-            </div>
-          </div>
+        <form class="add-slot-form" data-turno="jhover">
+          <input type="text" class="input-nuevo-horario" placeholder="Nuevo bloque horario (ej. 10:20 – 11:05)..." maxlength="32" aria-label="Nuevo horario Jhover" />
+          <button type="submit" class="btn btn-add-slot">➕ Añadir horario</button>
+        </form>
 
-          <div class="shift-card c-blue">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="jhover" data-slot="b2" value="5:05 – 5:50" maxlength="32" aria-label="Editar horario 2 Jhover" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-jhover-b2">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="jhover" data-slot="b2" id="jhover-b2">
-              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-green">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="jhover" data-slot="b3" value="7:00 – 7:45" maxlength="32" aria-label="Editar horario 3 Jhover" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-jhover-b3">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="jhover" data-slot="b3" id="jhover-b3">
-              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-amber">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="jhover" data-slot="b4" value="7:50 – 8:35" maxlength="32" aria-label="Editar horario 4 Jhover" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-jhover-b4">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="jhover" data-slot="b4" id="jhover-b4">
-              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-orange">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="jhover" data-slot="b5" value="8:40 – 9:25" maxlength="32" aria-label="Editar horario 5 Jhover" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-jhover-b5">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="jhover" data-slot="b5" id="jhover-b5">
-              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
-            </div>
-          </div>
-
-          <div class="shift-card c-purple">
-            <div class="shift-header">
-              <div class="shift-time">
-                <span class="shift-icon" aria-hidden="true">🌙</span>
-                <input type="text" class="shift-time-input" data-turno="jhover" data-slot="b6" value="9:30 – 10:15" maxlength="32" aria-label="Editar horario 6 Jhover" title="Haz clic para editar este horario" />
-                <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
-              </div>
-              <span class="shift-rule" id="badge-jhover-b6">Grupo</span>
-            </div>
-            <div class="shift-body dropzone" data-turno="jhover" data-slot="b6" id="jhover-b6">
-              <span class="empty-slot">Presiona ALEATORIO Jhover</span>
-            </div>
-          </div>
-        </div>
+        <div class="shifts-grid" id="gridJhover"></div>
 
         <div class="list-footer">
-          <span>Haz clic en cualquier horario para editarlo</span>
+          <span>Haz clic en un horario para editarlo · Usa ✕ para eliminar</span>
           <button type="button" class="link-reset btn-reset-horarios" data-turno="jhover">Restaurar horarios base</button>
         </div>
       </section>
@@ -1106,17 +983,57 @@
       { nombre: "Carreño Sotelo, Victor Martin", asistio: true }
     ];
 
+    const TURNO_CONFIG = {
+      diurno: {
+        gridId: "gridDiurno",
+        statusId: "estadoSorteoDiurno",
+        icon: "🕒",
+        emptyText: "Presiona ALEATORIO DIURNO",
+        copyTitle: "☀️ *REPARTO DE PAUSAS — DIURNO*",
+        colors: ["c-blue", "c-green", "c-amber", "c-orange", "c-indigo", "c-purple", "c-teal"]
+      },
+      nocturno: {
+        gridId: "gridNocturno",
+        statusId: "estadoSorteoNocturno",
+        icon: "🌙",
+        emptyText: "Presiona ALEATORIO NOCTURNO",
+        copyTitle: "🌙 *REPARTO DE PAUSAS — NOCTURNO*",
+        colors: ["c-indigo", "c-blue", "c-green", "c-amber", "c-orange", "c-purple", "c-teal"]
+      },
+      jhover: {
+        gridId: "gridJhover",
+        statusId: "estadoSorteoJhover",
+        icon: "🌙",
+        emptyText: "Presiona ALEATORIO Jhover",
+        copyTitle: "🌙 *REPARTO DE PAUSAS — JHOVER*",
+        colors: ["c-teal", "c-blue", "c-green", "c-amber", "c-orange", "c-purple", "c-indigo"]
+      }
+    };
+
     let turnoActivo = "diurno";
     let dragState = null;
 
     function normalizarHorarios(turno, raw) {
-      const base = DEFECTO_HORARIOS[turno];
-      const resultado = {};
-      Object.keys(base).forEach(slot => {
-        const valor = raw && typeof raw[slot] === "string" ? raw[slot].trim() : "";
-        resultado[slot] = valor || base[slot];
-      });
-      return resultado;
+      if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+        const resultado = {};
+        Object.keys(raw).forEach(slot => {
+          const valor = typeof raw[slot] === "string" ? raw[slot].trim() : "";
+          if (valor) {
+            resultado[slot] = valor;
+          }
+        });
+        if (Object.keys(resultado).length > 0) {
+          return resultado;
+        }
+      }
+      return JSON.parse(JSON.stringify(DEFECTO_HORARIOS[turno]));
+    }
+
+    function obtenerSlots(turno) {
+      const horarios = estado[turno] && estado[turno].horarios;
+      const keys = horarios ? Object.keys(horarios) : [];
+      if (keys.length > 0) return keys;
+      return Object.keys(DEFECTO_HORARIOS[turno]);
     }
 
     function obtenerHorario(turno, slot) {
@@ -1124,6 +1041,54 @@
         return estado[turno].horarios[slot];
       }
       return (DEFECTO_HORARIOS[turno] && DEFECTO_HORARIOS[turno][slot]) || slot;
+    }
+
+    function generarSlotKey(turno) {
+      let key = "";
+      do {
+        key = `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
+      } while (estado[turno] && estado[turno].horarios && estado[turno].horarios[key]);
+      return key;
+    }
+
+    function sincronizarRepartoConHorarios(turno) {
+      const rep = estado[turno] && estado[turno].reparto;
+      if (!rep || typeof rep !== "object") return 0;
+
+      const slotsActivos = obtenerSlots(turno);
+      const huerfanos = [];
+
+      Object.keys(rep).forEach(k => {
+        if (k === "hora") return;
+        if (!slotsActivos.includes(k)) {
+          if (Array.isArray(rep[k])) {
+            rep[k].forEach(n => {
+              if (n && !huerfanos.includes(n)) huerfanos.push(n);
+            });
+          }
+          delete rep[k];
+        }
+      });
+
+      slotsActivos.forEach(s => {
+        if (!Array.isArray(rep[s])) rep[s] = [];
+      });
+
+      let reubicados = 0;
+      if (huerfanos.length > 0 && slotsActivos.length > 0) {
+        huerfanos.forEach(nombre => {
+          const yaPresente = slotsActivos.some(s => rep[s].includes(nombre));
+          if (yaPresente) return;
+          let destino = slotsActivos[0];
+          slotsActivos.forEach(s => {
+            if (rep[s].length < rep[destino].length) destino = s;
+          });
+          rep[destino].push(nombre);
+          reubicados++;
+        });
+      }
+
+      return reubicados;
     }
 
     let estado = {
@@ -1182,22 +1147,16 @@
     }
 
     function renderHorarios() {
-      document.querySelectorAll(".shift-time-input").forEach(input => {
-        const turno = input.dataset.turno;
-        const slot = input.dataset.slot;
-        const valor = obtenerHorario(turno, slot);
-        if (document.activeElement !== input) {
-          input.value = valor;
-        }
-      });
+      renderPanelTurno("diurno");
+      renderPanelTurno("nocturno");
+      renderPanelTurno("jhover");
     }
 
     function renderizarTodo() {
-      renderHorarios();
       renderListaOperadores();
-      renderRepartoDiurno(estado.diurno.reparto);
-      renderRepartoNocturno(estado.nocturno.reparto);
-      renderRepartoJhover(estado.jhover.reparto);
+      renderPanelTurno("diurno");
+      renderPanelTurno("nocturno");
+      renderPanelTurno("jhover");
     }
 
     async function cargarDesdeNube(mostrarAviso = false) {
@@ -1217,6 +1176,7 @@
             if (data.estado[t] && data.estado[t].horarios && typeof data.estado[t].horarios === "object") {
               estado[t].horarios = normalizarHorarios(t, data.estado[t].horarios);
             }
+            sincronizarRepartoConHorarios(t);
           });
           guardarTodoLocal();
           renderizarTodo();
@@ -1339,19 +1299,19 @@
       if (turnoActivo === "diurno") {
         header.className = "header";
         document.getElementById("headerTitulo").textContent = "Gestor de Pausas — Turno Diurno";
-        document.getElementById("headerSubtitulo").textContent = "Arrastra operadores entre horarios · Haz clic en cualquier horario para editarlo";
+        document.getElementById("headerSubtitulo").textContent = "Arrastra operadores entre horarios · Edita, añade o elimina tarjetas de horario";
         document.getElementById("btnAleatorio").textContent = "🎲 ALEATORIO DIURNO";
         document.getElementById("tituloAsistencia").textContent = "Asistencia Diurno";
       } else if (turnoActivo === "nocturno") {
         header.className = "header night-theme";
         document.getElementById("headerTitulo").textContent = "Gestor de Pausas — Turno Nocturno";
-        document.getElementById("headerSubtitulo").textContent = "Arrastra operadores entre bloques · Haz clic en cualquier horario para editarlo";
+        document.getElementById("headerSubtitulo").textContent = "Arrastra operadores entre bloques · Edita, añade o elimina tarjetas de horario";
         document.getElementById("btnAleatorio").textContent = "🎲 ALEATORIO NOCTURNO";
         document.getElementById("tituloAsistencia").textContent = "Asistencia Nocturno";
       } else {
         header.className = "header jhover-theme";
         document.getElementById("headerTitulo").textContent = "Gestor de Pausas — Jhover";
-        document.getElementById("headerSubtitulo").textContent = "Arrastra operadores entre bloques · Haz clic en cualquier horario para editarlo";
+        document.getElementById("headerSubtitulo").textContent = "Arrastra operadores entre bloques · Edita, añade o elimina tarjetas de horario";
         document.getElementById("btnAleatorio").textContent = "🎲 ALEATORIO Jhover";
         document.getElementById("tituloAsistencia").textContent = "Asistencia Jhover";
       }
@@ -1404,17 +1364,16 @@
       return unicos;
     }
 
-    // Distribuye equitativamente en los 6 bloques horarios (4:15 a 10:15) sin dejar ninguno vacío
-    function distribuirEnSeisBloques(mezclados) {
+    // Distribuye equitativamente en los bloques horarios activos sin dejar ninguno desbalanceado
+    function distribuirEnBloques(mezclados, bloques) {
       const total = mezclados.length;
-      const bloques = ["b1", "b2", "b3", "b4", "b5", "b6"];
-      const resultado = { b1: [], b2: [], b3: [], b4: [], b5: [], b6: [] };
+      const resultado = {};
       const numBloques = bloques.length;
+      if (numBloques === 0) return resultado;
 
-      const basePorBloque = Math.floor(total / numBloques); // Ej: 13 -> 2 por bloque; 19 -> 3 por bloque
-      const sobrantes = total % numBloques;                 // Ej: 13 -> 1 extra al final; 19 -> 1 extra al final
+      const basePorBloque = Math.floor(total / numBloques);
+      const sobrantes = total % numBloques;
 
-      // Los primeros bloques llevan `basePorBloque` (ej. parejas de 2) y los últimos absorben los `sobrantes`
       let indice = 0;
       for (let i = 0; i < numBloques; i++) {
         const cupo = i >= (numBloques - sobrantes) ? basePorBloque + 1 : basePorBloque;
@@ -1429,6 +1388,12 @@
       const presentes = obtenerPresentesUnicos(turnoActivo);
       if (presentes.length === 0) {
         mostrarToast("⚠️ Marca al menos un operador como presente.");
+        return;
+      }
+
+      const slots = obtenerSlots(turnoActivo);
+      if (slots.length === 0) {
+        mostrarToast("⚠️ Añade al menos una tarjeta de horario.");
         return;
       }
 
@@ -1448,51 +1413,63 @@
         });
 
         const mezclados = mezclarFisherYates(otrosPresentes);
+        const dist = {};
+        slots.forEach(s => { dist[s] = []; });
 
-        let t1215 = [];
-        let t100 = [];
-        let t145 = [];
-        let t215 = [];
-
-        if (mezclados.length === 0) {
-          if (joseNombre) t215 = [joseNombre];
+        if (slots.length === 1) {
+          dist[slots[0]] = mezclarFisherYates([...mezclados, ...(joseNombre ? [joseNombre] : [])]);
         } else {
-          t1215 = [mezclados[0]];
-          const restoOtros = mezclados.slice(1);
+          const singleSlot = slots.includes("t1215") ? "t1215" : null;
+          const otherSlots = singleSlot ? slots.filter(s => s !== singleSlot) : slots.slice();
+          let restoOtros = mezclados;
+
+          if (singleSlot && mezclados.length > 0) {
+            dist[singleSlot] = [mezclados[0]];
+            restoOtros = mezclados.slice(1);
+          }
+
+          const joseSlot = otherSlots.includes("t215") ? "t215" : otherSlots[otherSlots.length - 1];
           const totalResto = restoOtros.length + (joseNombre ? 1 : 0);
+          const numOtros = otherSlots.length;
+          const base = Math.floor(totalResto / numOtros);
+          const sobrantes = totalResto % numOtros;
 
-          const base = Math.floor(totalResto / 3);
-          const sobrantes = totalResto % 3;
-          const cupo100 = base;
-          const cupo145 = base + (sobrantes === 2 ? 1 : 0);
+          const cupos = {};
+          otherSlots.forEach((s, i) => {
+            cupos[s] = i >= (numOtros - sobrantes) ? base + 1 : base;
+          });
 
-          t100 = restoOtros.slice(0, cupo100);
-          t145 = restoOtros.slice(cupo100, cupo100 + cupo145);
-          t215 = restoOtros.slice(cupo100 + cupo145);
+          if (joseNombre && cupos[joseSlot] === 0) {
+            const donante = [...otherSlots].reverse().find(s => cupos[s] > 0);
+            if (donante) cupos[donante]--;
+            cupos[joseSlot] = 1;
+          }
+
+          let idx = 0;
+          otherSlots.forEach(s => {
+            const necesarios = Math.max(0, cupos[s] - (joseNombre && s === joseSlot ? 1 : 0));
+            dist[s] = restoOtros.slice(idx, idx + necesarios);
+            idx += necesarios;
+          });
 
           if (joseNombre) {
-            t215.push(joseNombre);
-            t215 = mezclarFisherYates(t215);
+            dist[joseSlot].push(joseNombre);
+            dist[joseSlot] = mezclarFisherYates(dist[joseSlot]);
           }
         }
 
-        const reparto = { t1215, t100, t145, t215, hora: horaActual };
+        const reparto = { ...dist, hora: horaActual };
         estado.diurno.reparto = reparto;
         guardarStorage(keys.rep, reparto);
-        renderRepartoDiurno(reparto);
+        renderPanelTurno("diurno");
       } else {
         const mezclados = mezclarFisherYates(presentes);
-        const dist = distribuirEnSeisBloques(mezclados);
+        const dist = distribuirEnBloques(mezclados, slots);
 
         const reparto = { ...dist, hora: horaActual };
         estado[turnoActivo].reparto = reparto;
         guardarStorage(keys.rep, reparto);
-
-        if (turnoActivo === "nocturno") {
-          renderRepartoNocturno(reparto);
-        } else {
-          renderRepartoJhover(reparto);
-        }
+        renderPanelTurno(turnoActivo);
       }
 
       guardarEnNube(true);
@@ -1529,59 +1506,67 @@
       return span;
     }
 
-    function renderSlot(elementId, badgeId, nombres, turno, slotKey) {
-      const el = document.getElementById(elementId);
-      const badge = document.getElementById(badgeId);
-      el.innerHTML = "";
+    function configurarEventosHorarioInput(input) {
+      input.addEventListener("focus", () => {
+        input.dataset.prev = obtenerHorario(input.dataset.turno, input.dataset.slot);
+      });
 
-      const lista = nombres || [];
-      if (badge) {
-        badge.textContent = `${lista.length} ${lista.length === 1 ? "operador" : "operadores"}`;
-      }
+      input.addEventListener("input", () => {
+        const turno = input.dataset.turno;
+        const slot = input.dataset.slot;
+        const limpio = input.value.trim();
+        if (limpio && estado[turno].horarios[slot] !== undefined) {
+          estado[turno].horarios[slot] = limpio;
+          guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
+          guardarEnNube(false);
+        }
+      });
 
-      if (lista.length === 0) {
-        el.innerHTML = `<span class="empty-slot">Arrastra aquí o sortea</span>`;
-        return;
-      }
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          input.blur();
+        } else if (e.key === "Escape") {
+          const turno = input.dataset.turno;
+          const slot = input.dataset.slot;
+          const prev = input.dataset.prev || obtenerHorario(turno, slot);
+          const cambioPendiente = estado[turno].horarios[slot] !== prev;
+          input.value = prev;
+          estado[turno].horarios[slot] = prev;
+          guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
+          if (cambioPendiente) guardarEnNube(true);
+          input.blur();
+        }
+      });
 
-      lista.forEach(n => {
-        el.appendChild(crearPildoraOperador(n, turno, slotKey));
+      input.addEventListener("blur", () => {
+        const turno = input.dataset.turno;
+        const slot = input.dataset.slot;
+        if (estado[turno].horarios[slot] === undefined) return;
+        const prev = input.dataset.prev || obtenerHorario(turno, slot);
+        const limpio = input.value.trim();
+
+        if (!limpio) {
+          const cambioPendiente = estado[turno].horarios[slot] !== prev;
+          input.value = prev;
+          estado[turno].horarios[slot] = prev;
+          guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
+          if (cambioPendiente) guardarEnNube(true);
+          mostrarToast("⚠️ El horario no puede quedar vacío");
+          return;
+        }
+
+        input.value = limpio;
+        estado[turno].horarios[slot] = limpio;
+        guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
+        if (limpio !== prev) {
+          guardarEnNube(true);
+          mostrarToast(`🕒 Horario actualizado: ${limpio}`);
+        }
       });
     }
 
-    function renderRepartoDiurno(rep) {
-      if (!rep) return;
-      renderSlot("day-t1215", "badge-day-1215", rep.t1215, "diurno", "t1215");
-      renderSlot("day-t100", "badge-day-100", rep.t100, "diurno", "t100");
-      renderSlot("day-t145", "badge-day-145", rep.t145, "diurno", "t145");
-      renderSlot("day-t215", "badge-day-215", rep.t215, "diurno", "t215");
-      document.getElementById("estadoSorteoDiurno").textContent = `Actualizado ${rep.hora || ""}`;
-    }
-
-    function renderRepartoNocturno(rep) {
-      if (!rep) return;
-      renderSlot("night-b1", "badge-night-b1", rep.b1, "nocturno", "b1");
-      renderSlot("night-b2", "badge-night-b2", rep.b2, "nocturno", "b2");
-      renderSlot("night-b3", "badge-night-b3", rep.b3, "nocturno", "b3");
-      renderSlot("night-b4", "badge-night-b4", rep.b4, "nocturno", "b4");
-      renderSlot("night-b5", "badge-night-b5", rep.b5, "nocturno", "b5");
-      renderSlot("night-b6", "badge-night-b6", rep.b6, "nocturno", "b6");
-      document.getElementById("estadoSorteoNocturno").textContent = `Actualizado ${rep.hora || ""}`;
-    }
-
-    function renderRepartoJhover(rep) {
-      if (!rep) return;
-      renderSlot("jhover-b1", "badge-jhover-b1", rep.b1, "jhover", "b1");
-      renderSlot("jhover-b2", "badge-jhover-b2", rep.b2, "jhover", "b2");
-      renderSlot("jhover-b3", "badge-jhover-b3", rep.b3, "jhover", "b3");
-      renderSlot("jhover-b4", "badge-jhover-b4", rep.b4, "jhover", "b4");
-      renderSlot("jhover-b5", "badge-jhover-b5", rep.b5, "jhover", "b5");
-      renderSlot("jhover-b6", "badge-jhover-b6", rep.b6, "jhover", "b6");
-      document.getElementById("estadoSorteoJhover").textContent = `Actualizado ${rep.hora || ""}`;
-    }
-
-    // Configurar zonas donde se pueden soltar operadores (Dropzones)
-    document.querySelectorAll(".dropzone").forEach(zone => {
+    function configurarDropzone(zone) {
       zone.addEventListener("dragover", (e) => {
         if (!dragState) return;
         if (dragState.turno !== zone.dataset.turno) return;
@@ -1610,6 +1595,9 @@
         const rep = estado[turno].reparto;
         if (!rep) return;
 
+        if (!Array.isArray(rep[fromSlot])) rep[fromSlot] = [];
+        if (!Array.isArray(rep[targetSlot])) rep[targetSlot] = [];
+
         rep[fromSlot] = rep[fromSlot].filter(item => item !== nombre);
         if (!rep[targetSlot].includes(nombre)) {
           rep[targetSlot].push(nombre);
@@ -1618,19 +1606,137 @@
         const keys = getStorageKeys(turno);
         guardarStorage(keys.rep, rep);
         guardarEnNube(true);
-
-        if (turno === "diurno") {
-          renderRepartoDiurno(rep);
-        } else if (turno === "nocturno") {
-          renderRepartoNocturno(rep);
-        } else {
-          renderRepartoJhover(rep);
-        }
+        renderPanelTurno(turno);
 
         const etiquetaHora = obtenerHorario(turno, targetSlot);
         mostrarToast(`↔️ ${nombre} movido a ${etiquetaHora}`);
       });
-    });
+    }
+
+    function renderPanelTurno(turno) {
+      const cfg = TURNO_CONFIG[turno];
+      if (!cfg) return;
+      const grid = document.getElementById(cfg.gridId);
+      const statusEl = document.getElementById(cfg.statusId);
+      if (!grid) return;
+
+      const slots = obtenerSlots(turno);
+      const rep = estado[turno].reparto;
+      const puedeEliminar = slots.length > 1;
+
+      grid.innerHTML = "";
+
+      slots.forEach((slotKey, index) => {
+        const colorCls = cfg.colors[index % cfg.colors.length];
+        const horarioTexto = obtenerHorario(turno, slotKey);
+        const nombres = rep && Array.isArray(rep[slotKey]) ? rep[slotKey] : [];
+
+        const card = document.createElement("div");
+        card.className = `shift-card ${colorCls}`;
+
+        const badgeTexto = rep
+          ? `${nombres.length} ${nombres.length === 1 ? "operador" : "operadores"}`
+          : (turno === "diurno" && slotKey === "t1215" ? "1 operador" : "Grupo");
+
+        card.innerHTML = `
+          <div class="shift-header">
+            <div class="shift-time">
+              <span class="shift-icon" aria-hidden="true">${cfg.icon}</span>
+              <input type="text" class="shift-time-input" data-turno="${turno}" data-slot="${escapeHtml(slotKey)}" value="${escapeHtml(horarioTexto)}" maxlength="32" aria-label="Editar horario ${index + 1}" title="Haz clic para editar este horario" />
+              <button type="button" class="btn-edit-time" title="Editar horario" aria-label="Editar horario">✏️</button>
+            </div>
+            <div class="shift-header-right">
+              <span class="shift-rule">${badgeTexto}</span>
+              <button type="button" class="btn-delete-slot" data-turno="${turno}" data-slot="${escapeHtml(slotKey)}" title="${puedeEliminar ? "Eliminar tarjeta de horario" : "Debe quedar al menos 1 horario"}" aria-label="Eliminar tarjeta de horario" ${puedeEliminar ? "" : "disabled"}>✕</button>
+            </div>
+          </div>
+          <div class="shift-body dropzone" data-turno="${turno}" data-slot="${escapeHtml(slotKey)}"></div>
+        `;
+
+        const input = card.querySelector(".shift-time-input");
+        const btnEdit = card.querySelector(".btn-edit-time");
+        const btnDel = card.querySelector(".btn-delete-slot");
+        const body = card.querySelector(".shift-body");
+
+        configurarEventosHorarioInput(input);
+        btnEdit.addEventListener("click", () => {
+          input.focus();
+          input.select();
+        });
+        btnDel.addEventListener("click", () => eliminarTarjetaHorario(turno, slotKey));
+
+        if (!rep) {
+          body.innerHTML = `<span class="empty-slot">${cfg.emptyText}</span>`;
+        } else if (nombres.length === 0) {
+          body.innerHTML = `<span class="empty-slot">Arrastra aquí o sortea</span>`;
+        } else {
+          nombres.forEach(n => body.appendChild(crearPildoraOperador(n, turno, slotKey)));
+        }
+
+        configurarDropzone(body);
+        grid.appendChild(card);
+      });
+
+      if (statusEl) {
+        statusEl.textContent = rep ? `Actualizado ${rep.hora || ""}` : "Listo para sortear";
+      }
+    }
+
+    function agregarTarjetaHorario(turno, textoOpcional = "") {
+      const limpio = textoOpcional.trim();
+      const slotsActuales = obtenerSlots(turno);
+      const etiqueta = limpio || `Horario ${slotsActuales.length + 1}`;
+      const nuevaKey = generarSlotKey(turno);
+
+      estado[turno].horarios[nuevaKey] = etiqueta;
+      if (estado[turno].reparto && typeof estado[turno].reparto === "object") {
+        estado[turno].reparto[nuevaKey] = [];
+      }
+
+      const keys = getStorageKeys(turno);
+      guardarStorage(keys.hor, estado[turno].horarios);
+      if (estado[turno].reparto) guardarStorage(keys.rep, estado[turno].reparto);
+      renderPanelTurno(turno);
+      guardarEnNube(true);
+
+      if (!limpio) {
+        const nuevoInput = document.querySelector(`.shift-time-input[data-turno="${turno}"][data-slot="${nuevaKey}"]`);
+        if (nuevoInput) {
+          nuevoInput.focus();
+          nuevoInput.select();
+        }
+      }
+
+      mostrarToast(`➕ Tarjeta "${etiqueta}" añadida`);
+    }
+
+    function eliminarTarjetaHorario(turno, slotKey) {
+      const slots = obtenerSlots(turno);
+      if (slots.length <= 1) {
+        mostrarToast("⚠️ Debe quedar al menos 1 tarjeta de horario");
+        return;
+      }
+
+      const etiqueta = obtenerHorario(turno, slotKey);
+      delete estado[turno].horarios[slotKey];
+      const reubicados = sincronizarRepartoConHorarios(turno);
+
+      const keys = getStorageKeys(turno);
+      guardarStorage(keys.hor, estado[turno].horarios);
+      if (estado[turno].reparto) guardarStorage(keys.rep, estado[turno].reparto);
+      renderPanelTurno(turno);
+      guardarEnNube(true);
+
+      if (reubicados > 0) {
+        mostrarToast(`🗑️ "${etiqueta}" eliminado (${reubicados} ${reubicados === 1 ? "operador reubicado" : "operadores reubicados"})`);
+      } else {
+        mostrarToast(`🗑️ Tarjeta "${etiqueta}" eliminada`);
+      }
+    }
+
+    function renderRepartoDiurno() { renderPanelTurno("diurno"); }
+    function renderRepartoNocturno() { renderPanelTurno("nocturno"); }
+    function renderRepartoJhover() { renderPanelTurno("jhover"); }
 
     function copiarReparto() {
       const rep = estado[turnoActivo].reparto;
@@ -1640,30 +1746,15 @@
       }
 
       const f = arr => (arr && arr.length > 0 ? arr.join(", ") : "—");
-      let texto = "";
+      const cfg = TURNO_CONFIG[turnoActivo];
+      const slots = obtenerSlots(turnoActivo);
+      const lineas = [cfg.copyTitle];
 
-      if (turnoActivo === "diurno") {
-        texto = [
-          "☀️ *REPARTO DE PAUSAS — DIURNO*",
-          `🕒 *${obtenerHorario("diurno", "t1215")}:* ${f(rep.t1215)}`,
-          `🕒 *${obtenerHorario("diurno", "t100")}:* ${f(rep.t100)}`,
-          `🕒 *${obtenerHorario("diurno", "t145")}:* ${f(rep.t145)}`,
-          `🕒 *${obtenerHorario("diurno", "t215")}:* ${f(rep.t215)}`
-        ].join("\n");
-      } else {
-        const titulo = turnoActivo === "nocturno"
-          ? "🌙 *REPARTO DE PAUSAS — NOCTURNO*"
-          : "🌙 *REPARTO DE PAUSAS — JHOVER*";
-        texto = [
-          titulo,
-          `🕒 *${obtenerHorario(turnoActivo, "b1")}:* ${f(rep.b1)}`,
-          `🕒 *${obtenerHorario(turnoActivo, "b2")}:* ${f(rep.b2)}`,
-          `🕒 *${obtenerHorario(turnoActivo, "b3")}:* ${f(rep.b3)}`,
-          `🕒 *${obtenerHorario(turnoActivo, "b4")}:* ${f(rep.b4)}`,
-          `🕒 *${obtenerHorario(turnoActivo, "b5")}:* ${f(rep.b5)}`,
-          `🕒 *${obtenerHorario(turnoActivo, "b6")}:* ${f(rep.b6)}`
-        ].join("\n");
-      }
+      slots.forEach(slot => {
+        lineas.push(`🕒 *${obtenerHorario(turnoActivo, slot)}:* ${f(rep[slot])}`);
+      });
+
+      const texto = lineas.join("\n");
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(texto)
@@ -1756,73 +1847,15 @@
       btnSyncNubeEl.addEventListener("click", () => cargarDesdeNube(true));
     }
 
-    // Edición directa de horarios
-    document.querySelectorAll(".shift-time-input").forEach(input => {
-      input.addEventListener("focus", () => {
-        input.dataset.prev = obtenerHorario(input.dataset.turno, input.dataset.slot);
-      });
-
-      input.addEventListener("input", () => {
-        const turno = input.dataset.turno;
-        const slot = input.dataset.slot;
-        const limpio = input.value.trim();
-        if (limpio) {
-          estado[turno].horarios[slot] = limpio;
-          guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
-          guardarEnNube(false);
-        }
-      });
-
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          input.blur();
-        } else if (e.key === "Escape") {
-          const turno = input.dataset.turno;
-          const slot = input.dataset.slot;
-          const prev = input.dataset.prev || obtenerHorario(turno, slot);
-          const cambioPendiente = estado[turno].horarios[slot] !== prev;
-          input.value = prev;
-          estado[turno].horarios[slot] = prev;
-          guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
-          if (cambioPendiente) guardarEnNube(true);
-          input.blur();
-        }
-      });
-
-      input.addEventListener("blur", () => {
-        const turno = input.dataset.turno;
-        const slot = input.dataset.slot;
-        const prev = input.dataset.prev || obtenerHorario(turno, slot);
-        const limpio = input.value.trim();
-
-        if (!limpio) {
-          const cambioPendiente = estado[turno].horarios[slot] !== prev;
-          input.value = prev;
-          estado[turno].horarios[slot] = prev;
-          guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
-          if (cambioPendiente) guardarEnNube(true);
-          mostrarToast("⚠️ El horario no puede quedar vacío");
-          return;
-        }
-
-        input.value = limpio;
-        estado[turno].horarios[slot] = limpio;
-        guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
-        if (limpio !== prev) {
-          guardarEnNube(true);
-          mostrarToast(`🕒 Horario actualizado: ${limpio}`);
-        }
-      });
-    });
-
-    document.querySelectorAll(".btn-edit-time").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const input = btn.parentElement.querySelector(".shift-time-input");
-        if (input) {
-          input.focus();
-          input.select();
-        }
+    // Añadir nueva tarjeta de horario
+    document.querySelectorAll(".add-slot-form").forEach(form => {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const turno = form.dataset.turno;
+        const input = form.querySelector(".input-nuevo-horario");
+        const texto = input ? input.value : "";
+        agregarTarjetaHorario(turno, texto);
+        if (input) input.value = "";
       });
     });
 
@@ -1830,8 +1863,11 @@
       btn.addEventListener("click", () => {
         const turno = btn.dataset.turno;
         estado[turno].horarios = JSON.parse(JSON.stringify(DEFECTO_HORARIOS[turno]));
-        guardarStorage(getStorageKeys(turno).hor, estado[turno].horarios);
-        renderHorarios();
+        sincronizarRepartoConHorarios(turno);
+        const keys = getStorageKeys(turno);
+        guardarStorage(keys.hor, estado[turno].horarios);
+        if (estado[turno].reparto) guardarStorage(keys.rep, estado[turno].reparto);
+        renderPanelTurno(turno);
         guardarEnNube(true);
         const etiqueta = turno === "jhover" ? "Jhover" : turno;
         mostrarToast(`🔄 Horarios base de ${etiqueta} restaurados`);
@@ -1839,6 +1875,7 @@
     });
 
     // Inicialización local instantánea + sincronización con Google Sheets
+    ["diurno", "nocturno", "jhover"].forEach(sincronizarRepartoConHorarios);
     renderizarTodo();
     window.addEventListener("DOMContentLoaded", () => cargarDesdeNube(false));
   </script>
